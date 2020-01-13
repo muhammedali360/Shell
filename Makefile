@@ -1,6 +1,6 @@
-simpleShell: main.o
-	gcc -Wall -Wextra -Werror -o simpleShell main.o
-main.o: main.c
-	gcc -Wall -Wextra -Werror -c -o main.o main.c
+sshell: sshell.o
+	gcc -Wall -Wextra -Werror -o sshell sshell.o
+sshell.o: sshell.c
+	gcc -Wall -Wextra -Werror -c -o sshell.o sshell.c
 clean:
-	rm -f simpleShell main.o 
+	rm -f sshell sshell.o
