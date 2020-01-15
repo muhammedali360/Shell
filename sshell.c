@@ -8,7 +8,12 @@
 #define ARGUMENTS_MAX 16
 #define TOKEN_MAX 32
 
-int main(int argc, char *argv[])
+void printCompleteMessage(char *completedCommand, int retVal) {
+  fprintf(stderr, "+ completed '%s' [%d]\n",
+          completedCommand, retVal);
+}
+
+int main(void)
 {
         char cmd[CMDLINE_MAX];
         pid_t pid;
@@ -16,15 +21,15 @@ int main(int argc, char *argv[])
 
         while (1) {
                 char *nl;
-                // int retval;
+                // int retVal;
 
-                char *nullTest[1] = {NULL};
                 /* Print prompt */
                 printf("sshell$ ");
                 fflush(stdout);
 
                 /* Get command line */
                 fgets(cmd, CMDLINE_MAX, stdin);
+                char *args[] = {cmd,NULL};
 
                 /* Print command line if stdin is not provided by terminal */
                 if (!isatty(STDIN_FILENO)) {
@@ -47,22 +52,20 @@ int main(int argc, char *argv[])
                 // retval = system(cmd);
                 // fprintf(stdout, "Return status value for '%s': %d\n",
                 //         cmd, retval);
-                if (argc == 1) {
-                  pid = fork();
-                  if (pid == 0) {
-                    execvp(argv[1],nullTest);
-                    perror("execvp");
-                    exit(1);
-                  } else if (pid > 0) {
-                    waitpid(pid, &status, 0);
-                    printf("Child exited with status: %d\n", WEXITSTATUS(status));
-                  } else {
-                    perror("fork");
-                    exit(1);
-                  }
+                pid = fork();
+                if (pid == 0) {
+                  status = execvp(cmd,args);
+                  perror("execvp");
+                  exit(1);
+                } else if (pid > 0) {
+                  waitpid(pid,&status,0);
+                  printCompleteMessage(cmd,status);
+                  // printf("Child exited with status: %d\n",
+                  WEXITSTATUS(status);
+                } else {
+                  perror("fork");
+                  exit(1);
                 }
-                // retval = system(cmd);
-                fprintf(stderr, "+ completed '%s' [%d]\n", argv[1], status);
         }
 
         return EXIT_SUCCESS;
