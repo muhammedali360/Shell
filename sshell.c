@@ -12,48 +12,80 @@ typedef struct cmdLineStruct {
 	char *arguments[ARGUMENTS_MAX];
 } cmdLine;
 
+
 void printCompleteMessage(char *completedCommand, int retVal)
 {
 	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, retVal);
 }
 
-void executeBuiltIn(char *firstArg)
+int executeBuiltIn(char *cmd)
 {
-	if (!strcmp(firstArg, "pwd")) {
-		printf("pwd");
-	} else if (!strcmp(firstArg, "exit")) {
+	if (!strcmp(cmd, "pwd")) {
+		pid_t pid;
+		int status;
+		char *pwdCmd[3] = { "pwd", NULL };
+		pid = fork();
+		if (pid == 0) {
+			status = execvp(cmd, pwdCmd);
+			perror("execvp");
+			exit(1);
+		} else if (pid > 0) {
+			wait(&status);
+			printCompleteMessage(cmd, WEXITSTATUS(status));
+		} else {
+			perror("fork");
+			exit(1);
+		}
+	} else if (!strcmp(cmd, "exit")) {
 		/* Builtin command */
 		fprintf(stderr, "Bye...\n");
-		printCompleteMessage(firstArg,0);
+		printCompleteMessage(cmd, 0);
 		exit(0);
 	} else {
-		printf("cd");
+		printf("cd\n");
+		pid_t pid;
+		int status;
+		char *cdCmd[3] = { "cd", "" , NULL };
+		pid = fork();
+		if (pid == 0) {
+			status = execvp(cmd, cdCmd);
+			perror("execvp");
+			exit(1);
+		} else if (pid > 0) {
+			wait(&status);
+			printCompleteMessage(cmd, WEXITSTATUS(status));
+		} else {
+			perror("fork");
+			exit(1);
+		}
 	}
+	return -1;
 }
 char *returnBeforeSpace(char *cmd)
 {
 	int stringLength = strlen(cmd);
-	int returnLength = 0;
-	char *dest;
 
-	dest = (char *)malloc(stringLength+1);
+	printf("String length is %d\n", stringLength);
+	printf("cmd is %s\n", cmd);
+
+	int returnLength = 0;
+	char *dest = (char *)malloc(stringLength + 1);
 
 	for(int i = 0; i < stringLength; i++){
 		if (cmd[i] == ' '){
 			returnLength = i;
+			strncpy(dest, cmd, returnLength);
+			return dest;
 		}
 	}
-	strncpy(dest, cmd, returnLength);
-	return dest;
+	return cmd;
 }
 
 int main(void)
 {
 	char cmd[CMDLINE_MAX];
-	pid_t pid;
-	int status;
-	char checkSpace = ' ';
-	char *returnString;
+	// char checkSpace = ' ';
+	// char *returnString;
 	char *firstArg;
 
 	while (1) {
@@ -67,24 +99,9 @@ int main(void)
 		/* Get command line */
 		fgets(cmd, CMDLINE_MAX, stdin);
 
-		firstArg = returnBeforeSpace(cmd);
-		if ((!strcmp(cmd, "pwd")) || (!strcmp(cmd, "cd"))
-		|| (!strcmp(cmd, "exit"))){
-			executeBuiltIn(cmd);
-		}
-
-		returnString = strchr(cmd, checkSpace);
-
-		printf("String before |%c| is |%s|\n", checkSpace, firstArg);
-		printf("String after |%c| is |%s|\n", checkSpace, returnString);
-
-		// Test strings
-		char *args[] = {cmd,NULL};
-		char pwdString[256];
-
 		/* Print command line if stdin is not provided by terminal */
 		if (!isatty(STDIN_FILENO)) {
-			printf("dog");
+			printf("%s", cmd);
 			fflush(stdout);
 		}
 
@@ -93,41 +110,20 @@ int main(void)
 		if (nl)
 			*nl = '\0';
 
-		// /* Builtin command */
-		// if (!strcmp(cmd, "exit")) {
-		// 	fprintf(stderr, "Bye...\n");
-		// 	printCompleteMessage(cmd,0);
-		// 	exit(0);
-		// }
-
 		/* Builtin command */
+		firstArg = returnBeforeSpace(cmd);
+		printf("firstArg is |%s| and cmd is |%s|\n", firstArg, cmd);
 
-		if (!strcmp(cmd, "pwd")) {
-			getcwd(pwdString,256);
-			printf("%s\n", pwdString);
-			printCompleteMessage(cmd,0);
+		if ((!strcmp(cmd, "pwd")) || (!strcmp(firstArg, "cd"))
+		|| (!strcmp(cmd, "exit"))) {
+			executeBuiltIn(cmd, );
 		}
 
-		/* Regular command */
-		// retval = system(cmd);
-		// fprintf(stdout, "Return status value for '%s': %d\n",
-		//         cmd, retval);
-		if(strcmp(cmd, "pwd")){
-			pid = fork();
-			if (pid == 0) {
-				status = execvp(cmd,args);
-				perror("execvp");
-				exit(1);
-			} else if (pid > 0) {
-				waitpid(pid,&status,0);
-				printCompleteMessage(cmd,status);
-				// printf("Child exited with status: %d\n",
-				WEXITSTATUS(status);
-			} else {
-				perror("fork");
-				exit(1);
-			}
-		}
+		// firstArg = returnBeforeSpace(cmd);
+		// returnString = strchr(cmd, checkSpace);
+		//
+		// printf("String before |%c| is |%s|\n", checkSpace, firstArg);
+		// printf("String after |%c| is |%s|\n", checkSpace, returnString);
 	}
         return EXIT_SUCCESS;
 }
