@@ -21,38 +21,38 @@ int main(void)
 
 	while (1) {
 		char *nl;
-                // int retVal;
+		// int retVal;
 
 		/* Print prompt */
 		printf("sshell$ ");
 		fflush(stdout);
 
-                /* Get command line */
+		/* Get command line */
 		fgets(cmd, CMDLINE_MAX, stdin);
 
-                // Test strings
+		// Test strings
 		char *args[] = {cmd,NULL};
 		char pwdString[256];
 
-                /* Print command line if stdin is not provided by terminal */
+		/* Print command line if stdin is not provided by terminal */
 		if (!isatty(STDIN_FILENO)) {
-                	printf("dog");
-                	fflush(stdout);
-                }
+			printf("dog");
+			fflush(stdout);
+		}
 
-                /* Remove trailing newline from command line */
+		/* Remove trailing newline from command line */
 		nl = strchr(cmd, '\n');
 		if (nl)
 			*nl = '\0';
 
-                /* Builtin command */
+		/* Builtin command */
 		if (!strcmp(cmd, "exit")) {
 			fprintf(stderr, "Bye...\n");
-                  	printCompleteMessage(cmd,0);
-                  	exit(0);
+			printCompleteMessage(cmd,0);
+			exit(0);
 		}
 
-                /* Builtin command */
+		/* Builtin command */
 
 		if (!strcmp(cmd, "pwd")) {
 			getcwd(pwdString,256);
@@ -60,10 +60,10 @@ int main(void)
 			printCompleteMessage(cmd,0);
 		}
 
-                /* Regular command */
-                // retval = system(cmd);
-                // fprintf(stdout, "Return status value for '%s': %d\n",
-                //         cmd, retval);
+		/* Regular command */
+		// retval = system(cmd);
+		// fprintf(stdout, "Return status value for '%s': %d\n",
+		//         cmd, retval);
 		if(strcmp(cmd, "pwd")){
 			pid = fork();
 			if (pid == 0) {
