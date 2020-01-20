@@ -8,13 +8,43 @@
 #define ARGUMENTS_MAX 16
 #define TOKEN_MAX 32
 
-struct commandLineArgument {
-	int test = 0;
-};
+typedef struct cmdLineStruct {
+	char *arguments[ARGUMENTS_MAX];
+} cmdLine;
 
 void printCompleteMessage(char *completedCommand, int retVal)
 {
 	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, retVal);
+}
+
+void executeBuiltIn(char *firstArg)
+{
+	if (!strcmp(firstArg, "pwd")) {
+		printf("pwd");
+	} else if (!strcmp(firstArg, "exit")) {
+		/* Builtin command */
+		fprintf(stderr, "Bye...\n");
+		printCompleteMessage(firstArg,0);
+		exit(0);
+	} else {
+		printf("cd");
+	}
+}
+char *returnBeforeSpace(char *cmd)
+{
+	int stringLength = strlen(cmd);
+	int returnLength = 0;
+	char *dest;
+
+	dest = (char *)malloc(stringLength+1);
+
+	for(int i = 0; i < stringLength; i++){
+		if (cmd[i] == ' '){
+			returnLength = i;
+		}
+	}
+	strncpy(dest, cmd, returnLength);
+	return dest;
 }
 
 int main(void)
@@ -22,6 +52,9 @@ int main(void)
 	char cmd[CMDLINE_MAX];
 	pid_t pid;
 	int status;
+	char checkSpace = ' ';
+	char *returnString;
+	char *firstArg;
 
 	while (1) {
 		char *nl;
@@ -33,6 +66,17 @@ int main(void)
 
 		/* Get command line */
 		fgets(cmd, CMDLINE_MAX, stdin);
+
+		firstArg = returnBeforeSpace(cmd);
+		if ((!strcmp(cmd, "pwd")) || (!strcmp(cmd, "cd"))
+		|| (!strcmp(cmd, "exit"))){
+			executeBuiltIn(cmd);
+		}
+
+		returnString = strchr(cmd, checkSpace);
+
+		printf("String before |%c| is |%s|\n", checkSpace, firstArg);
+		printf("String after |%c| is |%s|\n", checkSpace, returnString);
 
 		// Test strings
 		char *args[] = {cmd,NULL};
@@ -49,12 +93,12 @@ int main(void)
 		if (nl)
 			*nl = '\0';
 
-		/* Builtin command */
-		if (!strcmp(cmd, "exit")) {
-			fprintf(stderr, "Bye...\n");
-			printCompleteMessage(cmd,0);
-			exit(0);
-		}
+		// /* Builtin command */
+		// if (!strcmp(cmd, "exit")) {
+		// 	fprintf(stderr, "Bye...\n");
+		// 	printCompleteMessage(cmd,0);
+		// 	exit(0);
+		// }
 
 		/* Builtin command */
 
