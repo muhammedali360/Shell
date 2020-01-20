@@ -116,7 +116,7 @@ int main(void)
 
 		if ((!strcmp(cmd, "pwd")) || (!strcmp(firstArg, "cd"))
 		|| (!strcmp(cmd, "exit"))) {
-			executeBuiltIn(cmd, );
+			executeBuiltIn(cmd);
 		}
 
 		// firstArg = returnBeforeSpace(cmd);
