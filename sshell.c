@@ -8,6 +8,10 @@
 #define ARGUMENTS_MAX 16
 #define TOKEN_MAX 32
 
+struct commandLineArgument {
+	int test = 0;
+};
+
 void printCompleteMessage(char *completedCommand, int retVal)
 {
 	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, retVal);
