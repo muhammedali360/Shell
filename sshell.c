@@ -32,20 +32,23 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		printCompleteMessage(firstArg, 0);
 		exit(0);
 	} else {
+		int checkCd;
 		if(!strcmp(firstArg, entireCommand)){
 			printf("Error: no such directory\n");
 			printCompleteMessage(firstArg, 1);
 		} else {
-		char *returnString = "";
-		returnString = strchr(entireCommand, ' ');
-
-		printf("%s\n", entireCommand);
-
-		if (returnString[0] == ' '){
-			returnString++;
-		}
-		chdir(returnString);
-		printCompleteMessage(firstArg, 0);
+			char *returnString = "";
+			returnString = strchr(entireCommand, ' ');
+			if (returnString[0] == ' '){
+				returnString++;
+			}
+			checkCd = chdir(returnString);
+			if (checkCd == -1){
+				printf("Error: no such directory\n");
+				printCompleteMessage(firstArg, 1);
+			} else {
+				printCompleteMessage(firstArg, 0);
+			}
 		}
 	}
 }
@@ -68,8 +71,6 @@ char *returnBeforeSpace(char *cmd)
 int main(void)
 {
 	char cmd[CMDLINE_MAX];
-	// char checkSpace = ' ';
-	// char *returnString;
 	char *firstArg;
 
 	while (1) {
@@ -94,18 +95,12 @@ int main(void)
 		if (nl)
 			*nl = '\0';
 
-		/* Builtin command */
+		/* Check for BuiltIn Command */
 		firstArg = returnBeforeSpace(cmd);
 		if ((!strcmp(firstArg, "pwd"))|| (!strcmp(firstArg, "cd"))
 		|| (!strcmp(firstArg, "exit"))) {
 			executeBuiltIn(firstArg, cmd);
 		}
-
-		// firstArg = returnBeforeSpace(cmd);
-		// returnString = strchr(cmd, checkSpace);
-		//
-		// printf("String before |%c| is |%s|\n", checkSpace, firstArg);
-		// printf("String after |%c| is |%s|\n", checkSpace, returnString);
 	}
         return EXIT_SUCCESS;
 }
