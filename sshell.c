@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <ctype.h>
 
 #define CMDLINE_MAX 512
 #define ARGUMENTS_MAX 16
@@ -67,13 +68,18 @@ char *returnBeforeSpace(char *cmd)
 			return dest;
 		}
 	}
+	free(dest);
 	return cmd;
 }
 
 int main(void)
 {
-	char cmd[CMDLINE_MAX];
+	char *cmd = (char *)malloc(CMDLINE_MAX);
+	// char cmd[CMDLINE_MAX];
+	char *destCmd = (char *)malloc(CMDLINE_MAX);
+
 	char *firstArg;
+	// int start = 0;
 
 	while (1) {
 		char *nl;
@@ -85,7 +91,9 @@ int main(void)
 
 		/* Get command line */
 		fgets(cmd, CMDLINE_MAX, stdin);
-		if (strlen(cmd) == 1){
+
+		int cmdLen = strlen(cmd);
+		if (cmdLen == 1){
 			continue;
 		}
 
