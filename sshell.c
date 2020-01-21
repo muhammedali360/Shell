@@ -22,10 +22,10 @@ void printCompleteMessage(char *completedCommand, int retVal)
 void executeBuiltIn(char *firstArg, char *entireCommand)
 {
 	if (!strcmp(firstArg, "pwd")) {
-		char cwd[512];
+		char cwd[CMDLINE_MAX];
 		getcwd( cwd, sizeof(cwd));
 		printf("%s\n",cwd);
-		printCompleteMessage(firstArg,WEXITSTATUS(0));
+		printCompleteMessage(firstArg, WEXITSTATUS(0));
 	} else if (!strcmp(firstArg, "exit")) {
 		/* Builtin command */
 		fprintf(stderr, "Bye...\n");
