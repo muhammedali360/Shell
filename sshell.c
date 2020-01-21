@@ -72,18 +72,20 @@ char *returnBeforeSpace(char *cmd)
 	return cmd;
 }
 
+char *removeLeadingSpace(char *cmd){
+	while (*cmd == ' ' || *cmd == '\t'){
+		cmd++;
+	}
+	return cmd;
+}
+
 int main(void)
 {
 	char *cmd = (char *)malloc(CMDLINE_MAX);
-	// char cmd[CMDLINE_MAX];
-	char *destCmd = (char *)malloc(CMDLINE_MAX);
-
 	char *firstArg;
-	// int start = 0;
 
 	while (1) {
 		char *nl;
-		// int retVal;
 
 		/* Print prompt */
 		printf("sshell$ ");
@@ -91,6 +93,7 @@ int main(void)
 
 		/* Get command line */
 		fgets(cmd, CMDLINE_MAX, stdin);
+		cmd = removeLeadingSpace(cmd);
 
 		int cmdLen = strlen(cmd);
 		if (cmdLen == 1){
