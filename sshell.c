@@ -33,6 +33,8 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		exit(0);
 	} else {
 		int checkCd;
+		/* Use this to prevent seg fault if to see if the entireCommand passed is simply
+		cd. If so, we print an error message */
 		if(!strcmp(firstArg, entireCommand)){
 			printf("Error: no such directory\n");
 			printCompleteMessage(firstArg, 1);
