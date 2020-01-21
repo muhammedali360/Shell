@@ -10,6 +10,7 @@
 
 typedef struct cmdLineStruct {
 	char *arguments[ARGUMENTS_MAX];
+	char **placeHOLDER;
 } cmdLine;
 
 
@@ -18,56 +19,50 @@ void printCompleteMessage(char *completedCommand, int retVal)
 	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, retVal);
 }
 
-int executeBuiltIn(char *cmd)
+void executeBuiltIn(char *firstArg, char *entireCommand)
 {
-	if (!strcmp(cmd, "pwd")) {
+	if (!strcmp(firstArg, "pwd")) {
 		pid_t pid;
 		int status;
 		char *pwdCmd[3] = { "pwd", NULL };
 		pid = fork();
 		if (pid == 0) {
-			status = execvp(cmd, pwdCmd);
+			status = execvp(firstArg, pwdCmd);
 			perror("execvp");
 			exit(1);
 		} else if (pid > 0) {
 			wait(&status);
-			printCompleteMessage(cmd, WEXITSTATUS(status));
+			printCompleteMessage(firstArg, WEXITSTATUS(status));
 		} else {
 			perror("fork");
 			exit(1);
 		}
-	} else if (!strcmp(cmd, "exit")) {
+	} else if (!strcmp(firstArg, "exit")) {
 		/* Builtin command */
 		fprintf(stderr, "Bye...\n");
-		printCompleteMessage(cmd, 0);
+		printCompleteMessage(firstArg, 0);
 		exit(0);
 	} else {
-		printf("cd\n");
-		pid_t pid;
-		int status;
-		char *cdCmd[3] = { "cd", "" , NULL };
-		pid = fork();
-		if (pid == 0) {
-			status = execvp(cmd, cdCmd);
-			perror("execvp");
-			exit(1);
-		} else if (pid > 0) {
-			wait(&status);
-			printCompleteMessage(cmd, WEXITSTATUS(status));
+		if(!strcmp(firstArg, entireCommand)){
+			printf("Error: no such directory\n");
+			printCompleteMessage(firstArg, 1);
 		} else {
-			perror("fork");
-			exit(1);
+		char *returnString = "";
+		returnString = strchr(entireCommand, ' ');
+
+		printf("%s\n", entireCommand);
+
+		if (returnString[0] == ' '){
+			returnString++;
+		}
+		chdir(returnString);
+		printCompleteMessage(firstArg, 0);
 		}
 	}
-	return -1;
 }
 char *returnBeforeSpace(char *cmd)
 {
 	int stringLength = strlen(cmd);
-
-	printf("String length is %d\n", stringLength);
-	printf("cmd is %s\n", cmd);
-
 	int returnLength = 0;
 	char *dest = (char *)malloc(stringLength + 1);
 
@@ -112,11 +107,9 @@ int main(void)
 
 		/* Builtin command */
 		firstArg = returnBeforeSpace(cmd);
-		printf("firstArg is |%s| and cmd is |%s|\n", firstArg, cmd);
-
-		if ((!strcmp(cmd, "pwd")) || (!strcmp(firstArg, "cd"))
-		|| (!strcmp(cmd, "exit"))) {
-			executeBuiltIn(cmd);
+		if ((!strcmp(firstArg, "pwd"))|| (!strcmp(firstArg, "cd"))
+		|| (!strcmp(firstArg, "exit"))) {
+			executeBuiltIn(firstArg, cmd);
 		}
 
 		// firstArg = returnBeforeSpace(cmd);
