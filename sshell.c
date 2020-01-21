@@ -22,21 +22,10 @@ void printCompleteMessage(char *completedCommand, int retVal)
 void executeBuiltIn(char *firstArg, char *entireCommand)
 {
 	if (!strcmp(firstArg, "pwd")) {
-		pid_t pid;
-		int status;
-		char *pwdCmd[3] = { "pwd", NULL };
-		pid = fork();
-		if (pid == 0) {
-			status = execvp(firstArg, pwdCmd);
-			perror("execvp");
-			exit(1);
-		} else if (pid > 0) {
-			wait(&status);
-			printCompleteMessage(firstArg, WEXITSTATUS(status));
-		} else {
-			perror("fork");
-			exit(1);
-		}
+		char cwd[512];
+		getcwd( cwd, sizeof(cwd));
+		printf("%s\n",cwd);
+		printCompleteMessage(firstArg,WEXITSTATUS(0));
 	} else if (!strcmp(firstArg, "exit")) {
 		/* Builtin command */
 		fprintf(stderr, "Bye...\n");
