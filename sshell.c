@@ -72,13 +72,25 @@ char *returnBeforeSpace(char *cmd)
 	return cmd;
 }
 
-char *removeLeadingSpace(char *cmd){
+char *removeLeadingSpace(char *cmd)
+{
 	while (*cmd == ' ' || *cmd == '\t'){
 		cmd++;
 	}
 	return cmd;
+//	if (cmd == NULL){
+//		return NULL;
+//	}
+//	char *c = &cmd[0];
+//	for(int i = 0; i < (int) strlen(cmd); i++){
+//		c++;
+//		if (!isspace(*c)){
+//			break;
+//		}	
+//	
+//	}
+//	return c;
 }
-
 int main(void)
 {
 	char *cmd = (char *)malloc(CMDLINE_MAX);
