@@ -85,6 +85,9 @@ int main(void)
 
 		/* Get command line */
 		fgets(cmd, CMDLINE_MAX, stdin);
+		if (strlen(cmd) == 1){
+			continue;
+		}
 
 		/* Print command line if stdin is not provided by terminal */
 		if (!isatty(STDIN_FILENO)) {
@@ -102,6 +105,26 @@ int main(void)
 		if ((!strcmp(firstArg, "pwd"))|| (!strcmp(firstArg, "cd"))
 		|| (!strcmp(firstArg, "exit"))) {
 			executeBuiltIn(firstArg, cmd);
+		} else {
+			pid_t pid;
+			int status;
+			char *cmdArgs[2] = { cmd, NULL};
+
+			pid = fork();
+			if (pid == 0){
+			/* Child */
+			execvp(cmdArgs[0],cmdArgs);
+			printf("Error: command not found\n");
+			exit(1);
+			}  else if (pid > 0) {
+				/* Parent */
+				wait(&status);
+				printCompleteMessage(cmd,
+				WEXITSTATUS(status));
+			} else {
+				perror("fork\n");
+				exit(1);
+			}
 		}
 	}
         return EXIT_SUCCESS;
