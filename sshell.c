@@ -10,7 +10,7 @@
 
 typedef struct cmdLineStruct {
 	char *arguments[ARGUMENTS_MAX];
-	char **placeHOLDER;
+	char **placeHolder;
 } cmdLine;
 
 
