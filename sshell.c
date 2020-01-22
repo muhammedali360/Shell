@@ -10,9 +10,9 @@
 #define TOKEN_MAX 32
 
 /* Struct to hold cmdline arguments */
-typedef struct cmdLineStruct {
-	char arguments[ARGUMENTS_MAX][CMDLINE_MAX];
-} cmdLine;
+typedef struct CmdLineStruct {
+	char *arguments[ARGUMENTS_MAX];
+} CmdLine;
 
 /* Prints complete message to stderr */
 void printCompleteMessage(char *completedCommand, int retVal)
@@ -92,6 +92,9 @@ int main(void)
 	char *copyArg = (char *)malloc(CMDLINE_MAX);
 	char *firstArg;
 	char *nl;
+	CmdLine structOfArgs;
+	int structStart;
+
 
 	while (1) {
 
@@ -130,28 +133,36 @@ int main(void)
 		/* Check for BuiltIn Command */
 		firstArg = returnBeforeSpace(cmd);
 
+		/* Parse the string, splitting it by spaces */
+		structStart = 0;
 		while (1) {
 			char *newArg = returnBeforeSpace(removeLeadingSpace(cmd));
 			if (strlen(newArg) == 0){
 				break;
 			}
-			printf("new args : %s\n", newArg);
 			cmd += strlen(newArg) + 1;
-			// add the new arg to struct
+			structOfArgs.arguments[structStart] = (char *)malloc(CMDLINE_MAX);
+			strcpy(structOfArgs.arguments[structStart], newArg);
+			// printf("%d item is: %s\n", structStart, structOfArgs.arguments[structStart]);
+			structStart++;
 		}
+		structOfArgs.arguments[structStart] = NULL;
+		// printf("%d item is: %s\n", structStart, structOfArgs.arguments[structStart]);
 
+		/* Handles BuiltIn commands */
 		if ((!strcmp(firstArg, "pwd")) || (!strcmp(firstArg, "cd"))
 		|| (!strcmp(firstArg, "exit"))) {
 			executeBuiltIn(firstArg, copyArg);
-		} else if ((!strcmp(firstArg, cmd))) {
+		/* Execution for non BuiltIn commands */
+		} else {
 			pid_t pid;
 			int status;
-			char *cmdArgs[2] = { cmd, NULL};
 
 			pid = fork();
 			if (pid == 0){
 			/* Child */
-			execvp(cmdArgs[0],cmdArgs);
+			execvp(structOfArgs.arguments[0],
+				structOfArgs.arguments);
 			printf("Error: command not found\n");
 			exit(1);
 			}  else if (pid > 0) {
