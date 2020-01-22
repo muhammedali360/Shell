@@ -14,6 +14,67 @@ typedef struct CmdLineStruct {
 	char *arguments[ARGUMENTS_MAX];
 } CmdLine;
 
+/* Creating built in stack */
+/*Inspired by: https://www.techiedelight.com/stack-implementation/*/
+typedef struct DirStack {
+	int top;
+	int stackSize;
+	int* items;
+} DirStack;
+
+DirStack *allocatedStackSpace(int size){
+	DirStack* stack = (DirStack*)malloc(sizeof(DirStack));
+	stack -> stackSize = size;
+	stack -> top = -1;
+	stack -> items = (int*)malloc(sizeof(int) * (size));
+	return stack;
+}
+
+void pushd(char *directoryToCd, DirStack stack)
+{
+	char cwd[CMDLINE_MAX];
+	getcwd( cwd, sizeof(cwd));
+	push(cwd);
+	chdir(directoryToCd);
+	stack.stackSize++;
+	//remalloc
+	//cd directory
+	pt->items[++pt->top] = x;
+}
+
+void popd(DirStack stack)
+{
+	char *previousDirectory = (char *)malloc(CMDLINE_MAX);
+	previousDirectory = pop();
+	chdir(previousDirectory);
+	stack.stackSize--;
+	//remalloc
+	//cd directory
+	pt->items[++pt->top] = x;
+}
+
+void dirs(DirStack stack)
+{
+	char cwd[CMDLINE_MAX];
+	getcwd( cwd, sizeof(cwd));
+	printf("%s\n",cwd);
+	for (int i = 0; i < stack.stackSize; i++) {
+		printf("%s\n", stack.items[i]);
+	}
+}
+void executeAddIn(char *firstArg, char *copyArg, DirStack stack)
+{
+	if (!strcmp(firstArg, "pushd")) {
+		char *returnString = "";
+		returnString = strchr(copyArg, ' ');
+		pushd(returnString, stack);
+	} else if (!strcmp(firstArg, "popd")) {
+
+	} else {
+
+	}
+}
+
 /* Prints complete message to stderr */
 void printCompleteMessage(char *completedCommand, int retVal)
 {
@@ -153,6 +214,10 @@ int main(void)
 		|| (!strcmp(firstArg, "exit"))) {
 			executeBuiltIn(firstArg, copyArg);
 		/* Execution for non BuiltIn commands */
+		} else if ((!strcmp(firstArg, "pushd")) || (!strcmp(firstArg, "popd")) || (!strcmp(firstArg, "dirs"))) {
+			DirStack stack;
+			allocatedStackSpace(100);
+			executeAddIn(firstArg, copyArg, stack);
 		} else {
 			pid_t pid;
 			int status;
