@@ -26,7 +26,7 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		char cwd[CMDLINE_MAX];
 		getcwd( cwd, sizeof(cwd));
 		printf("%s\n",cwd);
-		fprintf(stdout, "+ completed '%s' [%d]\n", firstArg, WEXITSTATUS(0));
+		printCompleteMessage(firstArg, WEXITSTATUS(0));
 	} else if (!strcmp(firstArg, "exit")) {
 		/* Builtin command */
 		fprintf(stderr, "Bye...\n");
@@ -38,7 +38,7 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		cd. If so, we print an error message */
 		if(!strcmp(firstArg, entireCommand)){
 			printf("Error: no such directory\n");
-			printCompleteMessage(firstArg, 1);
+			printCompleteMessage(entireCommand, 1);
 		} else {
 			char *returnString = "";
 			returnString = strchr(entireCommand, ' ');
@@ -48,9 +48,9 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 			checkCd = chdir(returnString);
 			if (checkCd == -1){
 				printf("Error: no such directory\n");
-				printCompleteMessage(firstArg, 1);
+				printCompleteMessage(entireCommand, 1);
 			} else {
-				printCompleteMessage(firstArg, 0);
+				printCompleteMessage(entireCommand, 0);
 			}
 		}
 	}
@@ -74,22 +74,14 @@ char *returnBeforeSpace(char *cmd)
 
 char *removeLeadingSpace(char *cmd)
 {
-	while (*cmd == ' ' || *cmd == '\t'){
-		cmd++;
+	char *firstChar = &cmd[0];
+	for (size_t i = 0; i < strlen(cmd); i++) {
+		if (!isspace(*firstChar)) {
+			break;
+		}
+		firstChar++;
 	}
-	return cmd;
-//	if (cmd == NULL){
-//		return NULL;
-//	}
-//	char *c = &cmd[0];
-//	for(int i = 0; i < (int) strlen(cmd); i++){
-//		c++;
-//		if (!isspace(*c)){
-//			break;
-//		}
-//
-//	}
-//	return c;
+	return firstChar;
 }
 int main(void)
 {
@@ -107,11 +99,6 @@ int main(void)
 		fgets(cmd, CMDLINE_MAX, stdin);
 		cmd = removeLeadingSpace(cmd);
 
-		int cmdLen = strlen(cmd);
-		if (cmdLen == 1){
-			continue;
-		}
-
 		/* Print command line if stdin is not provided by terminal */
 		if (!isatty(STDIN_FILENO)) {
 			printf("%s", cmd);
@@ -120,8 +107,15 @@ int main(void)
 
 		/* Remove trailing newline from command line */
 		nl = strchr(cmd, '\n');
-		if (nl)
+		if (nl) {
 			*nl = '\0';
+		}
+		/* If nothing is input into the command line,
+		continue */
+		int cmdLen = strlen(cmd);
+		if (cmdLen == 0){
+			continue;
+		}
 
 		/* Check for BuiltIn Command */
 		firstArg = returnBeforeSpace(cmd);
