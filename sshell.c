@@ -86,6 +86,7 @@ char *removeLeadingSpace(char *cmd)
 	}
 	return firstChar;
 }
+
 int main(void)
 {
 	char *cmd = (char *)malloc(CMDLINE_MAX);
@@ -105,14 +106,14 @@ int main(void)
 		/* Get command line */
 		fgets(cmd, CMDLINE_MAX, stdin);
 
-		/* Remove leading white spaces in the cmd*/
-		cmd = removeLeadingSpace(cmd);
-
 		/* Print command line if stdin is not provided by terminal */
 		if (!isatty(STDIN_FILENO)) {
 			printf("%s", cmd);
 			fflush(stdout);
 		}
+
+		/* Remove leading white spaces in the cmd*/
+		cmd = removeLeadingSpace(cmd);
 
 		/* Remove trailing newline from command line */
 		nl = strchr(cmd, '\n');
@@ -143,11 +144,9 @@ int main(void)
 			cmd += strlen(newArg) + 1;
 			structOfArgs.arguments[structStart] = (char *)malloc(CMDLINE_MAX);
 			strcpy(structOfArgs.arguments[structStart], newArg);
-			// printf("%d item is: %s\n", structStart, structOfArgs.arguments[structStart]);
 			structStart++;
 		}
 		structOfArgs.arguments[structStart] = NULL;
-		// printf("%d item is: %s\n", structStart, structOfArgs.arguments[structStart]);
 
 		/* Handles BuiltIn commands */
 		if ((!strcmp(firstArg, "pwd")) || (!strcmp(firstArg, "cd"))
@@ -168,7 +167,7 @@ int main(void)
 			}  else if (pid > 0) {
 				/* Parent */
 				wait(&status);
-				printCompleteMessage(cmd,
+				printCompleteMessage(copyArg,
 				WEXITSTATUS(status));
 			} else {
 				perror("fork\n");
