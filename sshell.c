@@ -26,7 +26,7 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		char cwd[CMDLINE_MAX];
 		getcwd( cwd, sizeof(cwd));
 		printf("%s\n",cwd);
-		printCompleteMessage(firstArg, WEXITSTATUS(0));
+		fprintf(stdout, "+ completed '%s' [%d]\n", firstArg, WEXITSTATUS(0));
 	} else if (!strcmp(firstArg, "exit")) {
 		/* Builtin command */
 		fprintf(stderr, "Bye...\n");
@@ -86,8 +86,8 @@ char *removeLeadingSpace(char *cmd)
 //		c++;
 //		if (!isspace(*c)){
 //			break;
-//		}	
-//	
+//		}
+//
 //	}
 //	return c;
 }
