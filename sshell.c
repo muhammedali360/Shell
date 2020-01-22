@@ -9,20 +9,17 @@
 #define ARGUMENTS_MAX 16
 #define TOKEN_MAX 32
 
+/* Struct to hold cmdline arguments */
 typedef struct cmdLineStruct {
-	char *arguments[ARGUMENTS_MAX];
+	char arguments[ARGUMENTS_MAX][CMDLINE_MAX];
 } cmdLine;
 
-typedef struct stack {
-	int test;
-} stack;
-
-
+/* Prints complete message to stderr */
 void printCompleteMessage(char *completedCommand, int retVal)
 {
 	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, retVal);
 }
-
+/* Handles execution of pwd, exit and cd */
 void executeBuiltIn(char *firstArg, char *entireCommand)
 {
 	if (!strcmp(firstArg, "pwd")) {
@@ -37,33 +34,30 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		exit(0);
 	} else {
 		int checkCd;
-		/* Use this to prevent seg fault if to see if the entireCommand passed is simply
-		cd. If so, we print an error message */
-		if(!strcmp(firstArg, entireCommand)){
+		/* Check if cd lacks an argument, if so print an error
+		message */
+		char *returnString = "";
+		returnString = strchr(entireCommand, ' ');
+		if (returnString == NULL){
 			printf("Error: no such directory\n");
 			printCompleteMessage(entireCommand, 1);
 		} else {
-			char *returnString = "";
-			returnString = strchr(entireCommand, ' ');
-			if (returnString == NULL){
+			/* Increment the pointer after strchr to reach the first character */
+			if (returnString[0] == ' '){
+				returnString++;
+			}
+			checkCd = chdir(returnString);
+			/* If checkCd failed, then print out an error message */
+			if (checkCd == -1){
 				printf("Error: no such directory\n");
 				printCompleteMessage(entireCommand, 1);
 			} else {
-				if (returnString[0] == ' '){
-					returnString++;
-				}
-				checkCd = chdir(returnString);
-				/* If checkCd failed, then print out an error message */
-				if (checkCd == -1){
-					printf("Error: no such directory\n");
-					printCompleteMessage(entireCommand, 1);
-				} else {
-					printCompleteMessage(entireCommand, 0);
-				}
+				printCompleteMessage(entireCommand, 0);
 			}
 		}
 	}
 }
+/* Return the first argument */
 char *returnBeforeSpace(char *cmd)
 {
 	int stringLength = strlen(cmd);
@@ -80,7 +74,7 @@ char *returnBeforeSpace(char *cmd)
 	free(dest);
 	return cmd;
 }
-
+/* Remove leading white spaces */
 char *removeLeadingSpace(char *cmd)
 {
 	char *firstChar = &cmd[0];
@@ -97,9 +91,9 @@ int main(void)
 	char *cmd = (char *)malloc(CMDLINE_MAX);
 	char *copyArg = (char *)malloc(CMDLINE_MAX);
 	char *firstArg;
+	char *nl;
 
 	while (1) {
-		char *nl;
 
 		/* Print prompt */
 		printf("sshell$ ");
@@ -107,6 +101,8 @@ int main(void)
 
 		/* Get command line */
 		fgets(cmd, CMDLINE_MAX, stdin);
+
+		/* Remove leading white spaces in the cmd*/
 		cmd = removeLeadingSpace(cmd);
 
 		/* Print command line if stdin is not provided by terminal */
@@ -123,13 +119,11 @@ int main(void)
 
 		/* Created to store the original message for the print
 		statement after completion */
-
 		strcpy(copyArg, cmd);
 
 		/* If nothing is input into the command line,
 		continue */
-		int cmdLen = strlen(cmd);
-		if (cmdLen == 0){
+		if (!strlen(cmd)){
 			continue;
 		}
 
@@ -149,7 +143,7 @@ int main(void)
 		if ((!strcmp(firstArg, "pwd")) || (!strcmp(firstArg, "cd"))
 		|| (!strcmp(firstArg, "exit"))) {
 			executeBuiltIn(firstArg, copyArg);
-		} else if ((!(strcmp(firstArg, cmd)))) {
+		} else if ((!strcmp(firstArg, cmd))) {
 			pid_t pid;
 			int status;
 			char *cmdArgs[2] = { cmd, NULL};
