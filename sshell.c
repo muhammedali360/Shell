@@ -11,8 +11,11 @@
 
 typedef struct cmdLineStruct {
 	char *arguments[ARGUMENTS_MAX];
-	char **placeHolder;
 } cmdLine;
+
+typedef struct stack {
+	int test;
+} stack;
 
 
 void printCompleteMessage(char *completedCommand, int retVal)
@@ -42,15 +45,21 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		} else {
 			char *returnString = "";
 			returnString = strchr(entireCommand, ' ');
-			if (returnString[0] == ' '){
-				returnString++;
-			}
-			checkCd = chdir(returnString);
-			if (checkCd == -1){
+			if (returnString == NULL){
 				printf("Error: no such directory\n");
 				printCompleteMessage(entireCommand, 1);
 			} else {
-				printCompleteMessage(entireCommand, 0);
+				if (returnString[0] == ' '){
+					returnString++;
+				}
+				checkCd = chdir(returnString);
+				/* If checkCd failed, then print out an error message */
+				if (checkCd == -1){
+					printf("Error: no such directory\n");
+					printCompleteMessage(entireCommand, 1);
+				} else {
+					printCompleteMessage(entireCommand, 0);
+				}
 			}
 		}
 	}
@@ -86,6 +95,7 @@ char *removeLeadingSpace(char *cmd)
 int main(void)
 {
 	char *cmd = (char *)malloc(CMDLINE_MAX);
+	char *copyArg = (char *)malloc(CMDLINE_MAX);
 	char *firstArg;
 
 	while (1) {
@@ -110,6 +120,12 @@ int main(void)
 		if (nl) {
 			*nl = '\0';
 		}
+
+		/* Created to store the original message for the print
+		statement after completion */
+
+		strcpy(copyArg, cmd);
+
 		/* If nothing is input into the command line,
 		continue */
 		int cmdLen = strlen(cmd);
@@ -119,10 +135,21 @@ int main(void)
 
 		/* Check for BuiltIn Command */
 		firstArg = returnBeforeSpace(cmd);
-		if ((!strcmp(firstArg, "pwd"))|| (!strcmp(firstArg, "cd"))
+
+		while (1) {
+			char *newArg = returnBeforeSpace(removeLeadingSpace(cmd));
+			if (strlen(newArg) == 0){
+				break;
+			}
+			printf("new args : %s\n", newArg);
+			cmd += strlen(newArg) + 1;
+			// add the new arg to struct
+		}
+
+		if ((!strcmp(firstArg, "pwd")) || (!strcmp(firstArg, "cd"))
 		|| (!strcmp(firstArg, "exit"))) {
-			executeBuiltIn(firstArg, cmd);
-		} else {
+			executeBuiltIn(firstArg, copyArg);
+		} else if ((!(strcmp(firstArg, cmd)))) {
 			pid_t pid;
 			int status;
 			char *cmdArgs[2] = { cmd, NULL};
