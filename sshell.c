@@ -19,81 +19,99 @@ typedef struct CmdLineStruct {
 /*Inspired by: https://www.geeksforgeeks.org/stack-data-structure-introduction-program */
 typedef struct DirStack
 {
-	char *directory;
+	char directory[CMDLINE_MAX];
 	struct DirStack* next;
 } DirStack;
-
-DirStack *newNode(char *directory)
-{
-	DirStack* node = (DirStack*)malloc(sizeof(DirStack));
-	node->directory = directory;
-	node->next = NULL;
-	return node;
-}
-// int isEmpty(DirStack *root)
-// {
-// 	return !root;
-// }
-//
-// void pushd(char *directoryToCd, DirStack stack)
-// {
-// 	struct DirStack *stackNode = newNode(data);
-// 	stackNode->next = *root;
-// 	*root = stackNode;
-// 	printf("%d pushed to stack\n", data);
-// 	char cwd[CMDLINE_MAX];
-// 	getcwd( cwd, sizeof(cwd));
-// 	push(cwd);
-// 	chdir(directoryToCd);
-// }
-//
-// void popd(DirStack **root)
-// {
-// 	if (isEmpty(*root))
-// 		return INT_MIN;
-// 	DirStack* temp = *root;
-// 	*root = (*root)->next;
-// 	int popped = temp->data;
-// 	free(temp);
-//
-// 	char *previousDirectory = (char *)malloc(CMDLINE_MAX);
-// 	previousDirectory = pop();
-// 	chdir(previousDirectory);
-// }
-// int peek(DirStack *stack)
-// {
-// 	if (isEmpty(root)) {
-// 		printf("Is empty\n");
-// 		return INT_MIN;
-// 	}
-// 	reuturn root->data;
-// }
-//
-// void dirs(DirStack stack)
-// {
-// 	char cwd[CMDLINE_MAX];
-// 	getcwd( cwd, sizeof(cwd));
-// 	printf("%s\n",cwd);
-// 	for (int i = 0; i < stack.stackSize; i++) {
-// 		printf("%s\n", stack.items[i]);
-// 	}
-// }
-// void executeAddIn(char *firstArg, char *copyArg, DirStack stack)
-// {
-// 	if (!strcmp(firstArg, "pushd")) {
-//
-// 	} else if (!strcmp(firstArg, "popd")) {
-//
-// 	} else {
-//
-// 	}
-// }
 
 /* Prints complete message to stderr */
 void printCompleteMessage(char *completedCommand, int retVal)
 {
 	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, retVal);
 }
+
+DirStack *newNode(char *directory)
+{
+	DirStack* node = (DirStack*)malloc(sizeof(DirStack));
+	strcpy(node->directory, directory);
+	node->next = NULL;
+	return node;
+}
+int isEmpty(DirStack *root)
+{
+	return !root;
+}
+
+void pushd(DirStack **root, char *directoryToCd)
+{
+	DirStack *stackNode = newNode(directoryToCd);
+	stackNode->next = *root;
+	*root = stackNode;
+	printf("%s pushed to stack\n", directoryToCd);
+	char cwd[CMDLINE_MAX];
+	getcwd( cwd, sizeof(cwd));
+	chdir(cwd);
+}
+
+void popd(DirStack **root)
+{
+	if (isEmpty(*root))
+		printf("It is empty\n");
+	DirStack *temp = *root;
+	*root = (*root)->next;
+	char *poppedDirectory = (char *)malloc(CMDLINE_MAX);
+	strcpy(poppedDirectory, temp->directory);
+	chdir(poppedDirectory);
+	free(temp);
+	free(poppedDirectory);
+}
+char *peek(DirStack *root)
+{
+	if (isEmpty(root)) {
+		printf("Is empty\n");
+		return 0;
+	}
+	return root->directory;
+}
+
+void dirs(DirStack *stack)
+{
+	char cwd[CMDLINE_MAX];
+	getcwd( cwd, sizeof(cwd));
+	printf("%s\n",cwd);
+	DirStack *temp = stack;
+	while (temp != NULL) {
+		printf("%s\n", temp ->directory);
+		temp = temp->next;
+	}
+}
+
+void executeAddIn(char *firstArg, char *copyArg, DirStack stack)
+{
+	if (!strcmp(firstArg, "pushd")) {
+		printf("firstArg is: %s\n", firstArg);
+		printf("copyArg is: %s\n", copyArg);
+		char *returnString = "";
+		returnString = strchr(copyArg, ' ');
+		if (returnString == NULL){
+			printf("Error\n");
+			printCompleteMessage(copyArg, 1);
+		} else {
+			/* Increment the pointer after strchr to reach the first character */
+			if (returnString[0] == ' '){
+				returnString++;
+			}
+			printf("returnString is: %s\n", returnString);
+			printf("stack is: %s\n", stack.directory);
+			pushd(,);
+
+		}
+	} else if (!strcmp(firstArg, "popd")) {
+
+	} else {
+
+	}
+}
+
 /* Handles execution of pwd, exit and cd */
 void executeBuiltIn(char *firstArg, char *entireCommand)
 {
@@ -229,8 +247,8 @@ int main(void)
 			executeBuiltIn(firstArg, copyArg);
 		/* Execution for non BuiltIn commands */
 		} else if ((!strcmp(firstArg, "pushd")) || (!strcmp(firstArg, "popd")) || (!strcmp(firstArg, "dirs"))) {
-			// DirStack stack;
-			// executeAddIn(firstArg, copyArg, stack);
+			DirStack stack;
+			executeAddIn(firstArg, copyArg, stack);
 		} else {
 			pid_t pid;
 			int status;
