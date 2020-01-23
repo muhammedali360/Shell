@@ -91,7 +91,6 @@ void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 	}
 }
 
-// void popd(DirStack **root)
 void popd(DirStack **root)
 {
 	if (isEmpty(*root)){
@@ -202,11 +201,12 @@ void executeRedirect(char *firstArg,char *copyArg)
 {
 	char originalArgument[CMDLINE_MAX];
 	char *restOfArg = (char *)malloc(CMDLINE_MAX);
+	char *stringPtr;
+	char *fileName;
 	int structStart = 0;
 	int fd;
 	int status;
 	pid_t pid;
-	char *fileName;
 	CmdLine structOfArgs;
 
 	strcpy(originalArgument, copyArg);
@@ -244,6 +244,11 @@ void executeRedirect(char *firstArg,char *copyArg)
 			}
 			/* If file exists, truncate to 0 */
 			lseek(fd, 0, SEEK_SET);
+			stringPtr = strchr(newArg, '>');
+			*stringPtr = '\0';
+			strcpy(structOfArgs.arguments[structStart], newArg);
+			structStart++;
+			break;
 		}
 		strcpy(structOfArgs.arguments[structStart], newArg);
 		structStart++;
@@ -252,7 +257,7 @@ void executeRedirect(char *firstArg,char *copyArg)
 	pid = fork();
 	if (pid == 0){
 		/* Child */
-		dup2(fd, STDIN_FILENO);
+		dup2(fd, STDOUT_FILENO);
 		close(fd);
 		execvp(structOfArgs.arguments[0],
 			structOfArgs.arguments);

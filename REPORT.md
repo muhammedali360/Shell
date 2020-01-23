@@ -9,4 +9,7 @@
 ### Phase 6:
 We decided to use a linked list for the stack of directories, based on a piazza
 response by Porquet.
-[We consulted this website for the implementation:](https://www.google.com)
+[We consulted this website for the implementation:](https://www.geeksforgeeks.org/stack-data-structure-introduction-program)
+We implemented the a modified version of the link, with pushd, popd, and dirs.
+
+Dirs was the simplest, as we simply iterated backward through our linked list.
