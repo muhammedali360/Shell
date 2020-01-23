@@ -41,8 +41,9 @@ int isEmpty(DirStack *root)
 	return !root;
 }
 
-void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
+void pushd(DirStack *root, char *directoryToCd, char *entireCommand)
 {
+	//malloc here
 	DirStack *stackNode = newNode(directoryToCd);
 	stackNode->next = *root;
 	*root = stackNode;
@@ -60,20 +61,21 @@ void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 }
 
 // void popd(DirStack **root)
-// void popd(DirStack **stack)
-// {
-// 	if (isEmpty(*stack)){
-// 		printf("Error: directory stack empty\n");
-// 		printCompleteMessage("popd", 1);
-// 	}
-// 	DirStack *temp = *root;
-// 	*root = (*root)->next;
-// 	char *poppedDirectory = (char *)malloc(CMDLINE_MAX);
-// 	strcpy(poppedDirectory, temp->directory);
-// 	chdir(poppedDirectory);
-// 	free(temp);
-// 	free(poppedDirectory);
-// }
+void popd(DirStack *stack)
+{
+	if (isEmpty(stack)){
+		printf("Error: directory stack empty\n");
+		printCompleteMessage("popd", 1);
+		return ;
+	}
+	DirStack *temp = stack;
+	stack = (stack)->next;
+	char *poppedDirectory = (char *)malloc(CMDLINE_MAX);
+	strcpy(poppedDirectory, temp->directory);
+	chdir(poppedDirectory);
+	free(temp);
+	free(poppedDirectory);
+}
 char *peek(DirStack *root)
 {
 	if (isEmpty(root)) {
@@ -115,10 +117,10 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 
 			printf("returnString is: %s\n", returnString);
 			printf("stack is: %s\n", stack->directory);
-			// pushd(,returnString, copyArg);
+			pushd(*stack, returnString, copyArg);
 		}
 	} else if (!strcmp(firstArg, "popd")) {
-		// popd(*stack);
+		popd(stack);
 	} else {
 		dirs(stack);
 	}
@@ -201,8 +203,8 @@ int main(void)
 	char *nl;
 	CmdLine structOfArgs;
 	int structStart;
-	DirStack *stack = malloc(sizeof(DirStack *));
-	stack->next = NULL;
+	DirStack *stack = NULL;
+	// stack->next = NULL;
 
 	while (1) {
 
