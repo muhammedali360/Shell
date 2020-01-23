@@ -9,6 +9,12 @@
 #define ARGUMENTS_MAX 16
 #define TOKEN_MAX 32
 
+/* Prints complete message to stderr */
+void printCompleteMessage(char *completedCommand, int retVal)
+{
+	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, retVal);
+}
+
 /* Struct to hold cmdline arguments */
 typedef struct CmdLineStruct {
 	char *arguments[ARGUMENTS_MAX];
@@ -23,12 +29,6 @@ typedef struct DirStack
 	struct DirStack* next;
 } DirStack;
 
-/* Prints complete message to stderr */
-void printCompleteMessage(char *completedCommand, int retVal)
-{
-	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, retVal);
-}
-
 DirStack *newNode(char *directory)
 {
 	DirStack* node = (DirStack*)malloc(sizeof(DirStack));
@@ -41,15 +41,16 @@ int isEmpty(DirStack *root)
 	return !root;
 }
 
-void pushd(DirStack *stack, char *directoryToCd, char *entireCommand)
+void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 {
 	//malloc here
 	DirStack *stackNode = newNode(directoryToCd);
-	stackNode->next = *stack;
-	*rostackot = stackNode;
+	stackNode->next = *root;
+	*root = stackNode;
 	printf("%s pushed to stack\n", directoryToCd);
+
 	char cwd[CMDLINE_MAX];
-	getcwd( cwd, sizeof(cwd));
+	getcwd(cwd, sizeof(cwd));
 	int checkCd = chdir(cwd);
 	/* If checkCd failed, then print out an error message */
 	if (checkCd == -1){
@@ -117,7 +118,8 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 
 			printf("returnString is: %s\n", returnString);
 			printf("stack is: %s\n", stack->directory);
-			pushd(*stack, returnString, copyArg);
+			//maybe remove the *
+			pushd(&stack, returnString, copyArg);
 		}
 	} else if (!strcmp(firstArg, "popd")) {
 		popd(stack);
