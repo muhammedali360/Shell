@@ -14,6 +14,35 @@ void printCompleteMessage(char *completedCommand, int retVal)
 {
 	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, retVal);
 }
+/* Return the first argument */
+char *returnBeforeSpace(char *cmd)
+{
+	int stringLength = strlen(cmd);
+	int returnLength = 0;
+	char *dest = (char *)malloc(stringLength + 1);
+
+	for(int i = 0; i < stringLength; i++){
+		if (cmd[i] == ' '){
+			returnLength = i;
+			strncpy(dest, cmd, returnLength);
+			return dest;
+		}
+	}
+	free(dest);
+	return cmd;
+}
+/* Remove leading white spaces */
+char *removeLeadingSpace(char *cmd)
+{
+	char *firstChar = &cmd[0];
+	for (size_t i = 0; i < strlen(cmd); i++) {
+		if (!isspace(*firstChar)) {
+			break;
+		}
+		firstChar++;
+	}
+	return firstChar;
+}
 
 /* Struct to hold cmdline arguments */
 typedef struct CmdLineStruct {
@@ -168,38 +197,40 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		}
 	}
 }
-void executeReDirect(char *copyArg){
-	return 0;
-}
-/* Return the first argument */
-char *returnBeforeSpace(char *cmd)
-{
-	int stringLength = strlen(cmd);
-	int returnLength = 0;
-	char *dest = (char *)malloc(stringLength + 1);
+void executeRedirect(char *firstArg,char *copyArg){
+	printf("copyArg is: %s\n", copyArg);
+	int structStart = 0;
+	CmdLine structOfArgs;
+	while (1) {
+		char *newArg = returnBeforeSpace(removeLeadingSpace(copyArg));
+		printf("newArg is: %s\n", newArg);
+		printf("firstArg is: %s\n", firstArg);
 
-	for(int i = 0; i < stringLength; i++){
-		if (cmd[i] == ' '){
-			returnLength = i;
-			strncpy(dest, cmd, returnLength);
-			return dest;
-		}
-	}
-	free(dest);
-	return cmd;
-}
-/* Remove leading white spaces */
-char *removeLeadingSpace(char *cmd)
-{
-	char *firstChar = &cmd[0];
-	for (size_t i = 0; i < strlen(cmd); i++) {
-		if (!isspace(*firstChar)) {
+		if (strlen(newArg) == 0){
 			break;
 		}
-		firstChar++;
+		copyArg += strlen(newArg) + 1;
+		structOfArgs.arguments[structStart] = (char *)malloc(CMDLINE_MAX);
+
+		if(strchr(newArg,'>') != NULL){
+			/* If the first argument is a redirect, then print
+			out an error message*/
+			if (!(strcmp(newArg, firstArg))) {
+				printf("Error: missing command\n");
+				return ;
+			}
+			/* If everything after redirect are spaces or empty,
+			then print an error message*/
+			if  (!strlen(removeLeadingSpace(copyArg))) {
+				printf("Error: no output file\n");
+			}
+		}
+
+		strcpy(structOfArgs.arguments[structStart], newArg);
+		printf("%d item is: %s\n", structStart, structOfArgs.arguments[structStart]);
+		structStart++;
 	}
-	return firstChar;
-}
+	structOfArgs.arguments[structStart] = NULL;}
 
 int main(void)
 {
@@ -263,11 +294,11 @@ int main(void)
 		}
 		structOfArgs.arguments[structStart] = NULL;
 
-		/*Check for redirection */
-		if (strchr(copyArg,'>')!=NULL){
-			//executeReDirect(copyArg);
+		/* Check for redirection character in string  */
+		if (strchr(copyArg,'>')!= NULL){
+			executeRedirect(firstArg, copyArg);
 		/* Handles BuiltIn commands */
-		}else if ((!strcmp(firstArg, "pwd")) || (!strcmp(firstArg, "cd")) || (!strcmp(firstArg, "exit"))) {
+		} else if ((!strcmp(firstArg, "pwd")) || (!strcmp(firstArg, "cd")) || (!strcmp(firstArg, "exit"))) {
 			executeBuiltIn(firstArg, copyArg);
 		/* Execution for non BuiltIn commands */
 		} else if ((!strcmp(firstArg, "pushd")) || (!strcmp(firstArg, "popd")) || (!strcmp(firstArg, "dirs"))) {
