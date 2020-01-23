@@ -41,7 +41,7 @@ int isEmpty(DirStack *root)
 	return !root;
 }
 
-void pushd(DirStack **root, char *directoryToCd)
+void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 {
 	DirStack *stackNode = newNode(directoryToCd);
 	stackNode->next = *root;
@@ -49,21 +49,31 @@ void pushd(DirStack **root, char *directoryToCd)
 	printf("%s pushed to stack\n", directoryToCd);
 	char cwd[CMDLINE_MAX];
 	getcwd( cwd, sizeof(cwd));
-	chdir(cwd);
+	int checkCd = chdir(cwd);
+	/* If checkCd failed, then print out an error message */
+	if (checkCd == -1){
+		printf("Error: no such directory\n");
+		printCompleteMessage(entireCommand, 1);
+	} else {
+		printCompleteMessage(entireCommand, 0);
+	}
 }
 
-void popd(DirStack **root)
-{
-	if (isEmpty(*root))
-		printf("It is empty\n");
-	DirStack *temp = *root;
-	*root = (*root)->next;
-	char *poppedDirectory = (char *)malloc(CMDLINE_MAX);
-	strcpy(poppedDirectory, temp->directory);
-	chdir(poppedDirectory);
-	free(temp);
-	free(poppedDirectory);
-}
+// void popd(DirStack **root)
+// void popd(DirStack **stack)
+// {
+// 	if (isEmpty(*stack)){
+// 		printf("Error: directory stack empty\n");
+// 		printCompleteMessage("popd", 1);
+// 	}
+// 	DirStack *temp = *root;
+// 	*root = (*root)->next;
+// 	char *poppedDirectory = (char *)malloc(CMDLINE_MAX);
+// 	strcpy(poppedDirectory, temp->directory);
+// 	chdir(poppedDirectory);
+// 	free(temp);
+// 	free(poppedDirectory);
+// }
 char *peek(DirStack *root)
 {
 	if (isEmpty(root)) {
@@ -76,7 +86,7 @@ char *peek(DirStack *root)
 void dirs(DirStack *stack)
 {
 	char cwd[CMDLINE_MAX];
-	getcwd( cwd, sizeof(cwd));
+	getcwd(cwd, sizeof(cwd));
 	printf("%s\n",cwd);
 	DirStack *temp = stack;
 	while (temp != NULL) {
@@ -85,31 +95,32 @@ void dirs(DirStack *stack)
 	}
 }
 
-void executeAddIn(char *firstArg, char *copyArg, DirStack stack)
+void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 {
 	if (!strcmp(firstArg, "pushd")) {
+
 		printf("firstArg is: %s\n", firstArg);
 		printf("copyArg is: %s\n", copyArg);
+
 		char *returnString = "";
 		returnString = strchr(copyArg, ' ');
 		if (returnString == NULL){
-			printf("Error\n");
+			printf("Error: pushd\n");
 			printCompleteMessage(copyArg, 1);
 		} else {
 			/* Increment the pointer after strchr to reach the first character */
 			if (returnString[0] == ' '){
 				returnString++;
 			}
-			printf("returnString is: %s\n", returnString);
-			printf("stack is: %s\n", stack.directory);
-			//WORK HERE ALI. IM NOT SURE WHAT THE FIRST ARGUMENT NEEDS TO BE ASK JAMES. */
-			// pushd(,returnString);
 
+			printf("returnString is: %s\n", returnString);
+			printf("stack is: %s\n", stack->directory);
+			// pushd(,returnString, copyArg);
 		}
 	} else if (!strcmp(firstArg, "popd")) {
-
+		// popd(*stack);
 	} else {
-
+		dirs(stack);
 	}
 }
 
@@ -126,6 +137,7 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		fprintf(stderr, "Bye...\n");
 		printCompleteMessage(firstArg, 0);
 		exit(0);
+	/* For cd*/
 	} else {
 		int checkCd;
 		/* Check if cd lacks an argument, if so print an error
@@ -189,7 +201,8 @@ int main(void)
 	char *nl;
 	CmdLine structOfArgs;
 	int structStart;
-
+	DirStack *stack = malloc(sizeof(DirStack *));
+	stack->next = NULL;
 
 	while (1) {
 
@@ -248,7 +261,7 @@ int main(void)
 			executeBuiltIn(firstArg, copyArg);
 		/* Execution for non BuiltIn commands */
 		} else if ((!strcmp(firstArg, "pushd")) || (!strcmp(firstArg, "popd")) || (!strcmp(firstArg, "dirs"))) {
-			DirStack stack;
+
 			executeAddIn(firstArg, copyArg, stack);
 		} else {
 			pid_t pid;
