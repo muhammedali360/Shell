@@ -41,12 +41,12 @@ int isEmpty(DirStack *root)
 	return !root;
 }
 
-void pushd(DirStack *root, char *directoryToCd, char *entireCommand)
+void pushd(DirStack *stack, char *directoryToCd, char *entireCommand)
 {
 	//malloc here
 	DirStack *stackNode = newNode(directoryToCd);
-	stackNode->next = *root;
-	*root = stackNode;
+	stackNode->next = *stack;
+	*rostackot = stackNode;
 	printf("%s pushed to stack\n", directoryToCd);
 	char cwd[CMDLINE_MAX];
 	getcwd( cwd, sizeof(cwd));
@@ -80,7 +80,7 @@ char *peek(DirStack *root)
 {
 	if (isEmpty(root)) {
 		printf("Is empty\n");
-		return 0;
+		return NULL;
 	}
 	return root->directory;
 }
