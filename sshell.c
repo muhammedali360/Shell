@@ -19,13 +19,11 @@ void printCompleteMessage(char *completedCommand, int retVal)
 char *returnBeforeSpace(char *cmd)
 {
 	int stringLength = strlen(cmd);
-	int returnLength = 0;
 	char *dest = (char *)malloc(stringLength + 1);
 
 	for(int i = 0; i < stringLength; i++){
 		if (cmd[i] == ' '){
-			returnLength = i;
-			strncpy(dest, cmd, returnLength);
+			strncpy(dest, cmd, i);
 			return dest;
 		}
 	}
@@ -81,9 +79,9 @@ void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 
 	char cwd[CMDLINE_MAX];
 	getcwd(cwd, sizeof(cwd));
-	int checkCd = chdir(directoryToCd);
+	int checkCd = chdir(cwd);
 	/* If checkCd failed, then print out an error message */
-	if (checkCd == -1) {
+	if (checkCd == -1){
 		printf("Error: no such directory\n");
 		printCompleteMessage(entireCommand, 1);
 	} else {
@@ -132,8 +130,8 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 {
 	if (!strcmp(firstArg, "pushd")) {
 
-		// printf("firstArg is: %s\n", firstArg);
-		// printf("copyArg is: %s\n", copyArg);
+		printf("firstArg is: %s\n", firstArg);
+		printf("copyArg is: %s\n", copyArg);
 
 		char *returnString = "";
 		returnString = strchr(copyArg, ' ');
@@ -146,13 +144,13 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 				returnString++;
 			}
 
-			// printf("returnString is: %s\n", returnString);
-			// printf("stack is: %s\n", stack->directory);
+			printf("returnString is: %s\n", returnString);
+			printf("stack is: %s\n", stack->directory);
 			//maybe remove the *
-			pushd(&stack, returnString, copyArg);
+			// pushd(&stack, returnString, copyArg);
 		}
 	} else if (!strcmp(firstArg, "popd")) {
-		popd(&stack);
+		// popd(&stack);
 	} else {
 		dirs(stack);
 	}
@@ -239,7 +237,7 @@ void executeRedirect(char *firstArg,char *copyArg)
 				fprintf(stderr, "Error: no output file\n");
 				return ;
 			}
-			fileName = removeLeadingSpace(restOfArg);
+			fileName = returnBeforeSpace(removeLeadingSpace(restOfArg));
 			fd = open(fileName, O_CREAT | O_TRUNC | O_RDWR, 0644);
 			/* If fd is equal to -1, the file had an error. We
 			need to either create the file or the file had an

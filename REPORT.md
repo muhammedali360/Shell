@@ -1,8 +1,16 @@
 # ECS-150-Project-001-
-##Sample Shell
+## Sample Shell
 
-###Some Global Functions:
+### Important Global Functions:
+returnBeforeSpace: Given a string, returns everything before the first space.
+Given no space, it will return the input. We do this by iterating through the
+string, searching for a space ' '. When the first space is found, the original
+string is copied up to that point, and the result is returned.
 
+removeLeadingSpace: Given a string, will remove all spaces and tabs preceeding
+it. We do this in a loop that gets the pointer to the string, checks the first
+character to see if it is whitespace, and increments the pointer if yes, until
+it hits a non-whitespace character and returns.
 ### Phase 1:
 To run simple one word commands, we simply took the input argument, removed all
 spaces following it, and then ran through a similar process as the one seen in
@@ -36,7 +44,7 @@ and it was arguably the most complex part of the assignment.
 ### Phase 6:
 We decided to use a linked list for the stack of directories, based on a piazza
 response by Porquet.
-[We consulted this website for the implementation:](https://www.geeksforgeeks.org/stack-data-structure-introduction-program)
+[We consulted this website for the implementation](https://www.geeksforgeeks.org/stack-data-structure-introduction-program)
 We implemented the a modified version of the link, with pushd, popd, and dirs.
 
 Adding error redirection was as simple as creating a flag to detect an ampersand
