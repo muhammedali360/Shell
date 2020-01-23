@@ -203,6 +203,7 @@ void executeRedirect(char *firstArg,char *copyArg)
 	char *restOfArg = (char *)malloc(CMDLINE_MAX);
 	char *stringPtr;
 	char *fileName;
+	int errorFlag=0;
 	int structStart = 0;
 	int fd;
 	int status;
@@ -229,6 +230,11 @@ void executeRedirect(char *firstArg,char *copyArg)
 			then print an error message*/
 			restOfArg =  strchr(originalArgument, '>');
 			restOfArg++;
+			if(restOfArg == strchr(originalArgument, '&')){
+				//Set error redirect flag if ampersand detected
+				errorFlag=1;
+				restOfArg++;
+			}
 			if  (!strlen(removeLeadingSpace(restOfArg))) {
 				fprintf(stderr, "Error: no output file\n");
 				return ;
@@ -256,24 +262,50 @@ void executeRedirect(char *firstArg,char *copyArg)
 		structStart++;
 	}
 	structOfArgs.arguments[structStart] = NULL;
-	pid = fork();
-	if (pid == 0){
-		/* Child */
-		dup2(fd, STDOUT_FILENO);
-		close(fd);
-		execvp(structOfArgs.arguments[0],
-			structOfArgs.arguments);
-		printf("Error: command not found\n");
-		exit(1);
-	}  else if (pid > 0) {
-		/* Parent */
-		wait(&status);
-		printCompleteMessage(originalArgument,
-		WEXITSTATUS(status));
-	} else {
-		perror("fork");
-		exit(1);
+
+	if (errorFlag==0){
+		pid = fork();
+		if (pid == 0){
+			/* Child */
+			dup2(fd, STDOUT_FILENO);
+			close(fd);
+			execvp(structOfArgs.arguments[0],
+				structOfArgs.arguments);
+			printf("Error: command not found\n");
+			exit(1);
+		}  else if (pid > 0) {
+			/* Parent */
+			wait(&status);
+			printCompleteMessage(originalArgument,
+			WEXITSTATUS(status));
+		} else {
+			perror("fork");
+			exit(1);
+		}
+	} else { //redirect error as well
+		pid = fork();
+		if (pid == 0){
+			/* Child */
+			dup2(fd, STDOUT_FILENO);
+			dup2(fd, STDERR_FILENO);
+			close(fd);
+			execvp(structOfArgs.arguments[0],
+				structOfArgs.arguments);
+			printf("Error: command not found\n");
+			exit(1);
+		}  else if (pid > 0) {
+			/* Parent */
+			wait(&status);
+			printCompleteMessage(originalArgument,
+			WEXITSTATUS(status));
+		} else {
+			perror("fork");
+			exit(1);
+		}
 	}
+
+
+
 }
 int main(void)
 {
