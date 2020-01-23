@@ -165,6 +165,9 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		}
 	}
 }
+void executeReDirect(char *copyArg){
+	return 0;
+}
 /* Return the first argument */
 char *returnBeforeSpace(char *cmd)
 {
@@ -257,15 +260,17 @@ int main(void)
 		}
 		structOfArgs.arguments[structStart] = NULL;
 
+		/*Check for redirection */
+		if (strchr(copyArg,'>')!=NULL){
+			//executeReDirect(copyArg);
 		/* Handles BuiltIn commands */
-		if ((!strcmp(firstArg, "pwd")) || (!strcmp(firstArg, "cd"))
-		|| (!strcmp(firstArg, "exit"))) {
+		}else if ((!strcmp(firstArg, "pwd")) || (!strcmp(firstArg, "cd")) || (!strcmp(firstArg, "exit"))) {
 			executeBuiltIn(firstArg, copyArg);
 		/* Execution for non BuiltIn commands */
 		} else if ((!strcmp(firstArg, "pushd")) || (!strcmp(firstArg, "popd")) || (!strcmp(firstArg, "dirs"))) {
 
 			executeAddIn(firstArg, copyArg, stack);
-		} else {
+		} else { //handle all other cases
 			pid_t pid;
 			int status;
 
