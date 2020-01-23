@@ -81,9 +81,9 @@ void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 
 	char cwd[CMDLINE_MAX];
 	getcwd(cwd, sizeof(cwd));
-	int checkCd = chdir(cwd);
+	int checkCd = chdir(directoryToCd);
 	/* If checkCd failed, then print out an error message */
-	if (checkCd == -1){
+	if (checkCd == -1) {
 		printf("Error: no such directory\n");
 		printCompleteMessage(entireCommand, 1);
 	} else {
@@ -132,8 +132,8 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 {
 	if (!strcmp(firstArg, "pushd")) {
 
-		printf("firstArg is: %s\n", firstArg);
-		printf("copyArg is: %s\n", copyArg);
+		// printf("firstArg is: %s\n", firstArg);
+		// printf("copyArg is: %s\n", copyArg);
 
 		char *returnString = "";
 		returnString = strchr(copyArg, ' ');
@@ -146,13 +146,13 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 				returnString++;
 			}
 
-			printf("returnString is: %s\n", returnString);
-			printf("stack is: %s\n", stack->directory);
+			// printf("returnString is: %s\n", returnString);
+			// printf("stack is: %s\n", stack->directory);
 			//maybe remove the *
-			// pushd(&stack, returnString, copyArg);
+			pushd(&stack, returnString, copyArg);
 		}
 	} else if (!strcmp(firstArg, "popd")) {
-		// popd(&stack);
+		popd(&stack);
 	} else {
 		dirs(stack);
 	}
