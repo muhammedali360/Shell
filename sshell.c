@@ -62,15 +62,16 @@ void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 }
 
 // void popd(DirStack **root)
-void popd(DirStack *stack)
+void popd(DirStack **root)
 {
-	if (isEmpty(stack)){
+	if (isEmpty(*root)){
 		printf("Error: directory stack empty\n");
 		printCompleteMessage("popd", 1);
 		return ;
 	}
-	DirStack *temp = stack;
-	stack = (stack)->next;
+	DirStack *temp = *root;
+	*root = (*root)->next;
+
 	char *poppedDirectory = (char *)malloc(CMDLINE_MAX);
 	strcpy(poppedDirectory, temp->directory);
 	chdir(poppedDirectory);
@@ -119,10 +120,10 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 			printf("returnString is: %s\n", returnString);
 			printf("stack is: %s\n", stack->directory);
 			//maybe remove the *
-			pushd(&stack, returnString, copyArg);
+			// pushd(&stack, returnString, copyArg);
 		}
 	} else if (!strcmp(firstArg, "popd")) {
-		popd(stack);
+		// popd(&stack);
 	} else {
 		dirs(stack);
 	}
@@ -265,7 +266,6 @@ int main(void)
 			executeBuiltIn(firstArg, copyArg);
 		/* Execution for non BuiltIn commands */
 		} else if ((!strcmp(firstArg, "pushd")) || (!strcmp(firstArg, "popd")) || (!strcmp(firstArg, "dirs"))) {
-
 			executeAddIn(firstArg, copyArg, stack);
 		} else {
 			pid_t pid;
