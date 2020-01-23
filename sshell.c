@@ -102,7 +102,8 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack stack)
 			}
 			printf("returnString is: %s\n", returnString);
 			printf("stack is: %s\n", stack.directory);
-			pushd(,);
+			//WORK HERE ALI. IM NOT SURE WHAT THE FIRST ARGUMENT NEEDS TO BE ASK JAMES. */
+			// pushd(,returnString);
 
 		}
 	} else if (!strcmp(firstArg, "popd")) {
