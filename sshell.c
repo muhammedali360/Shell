@@ -246,8 +246,10 @@ void executeRedirect(char *firstArg,char *copyArg)
 			lseek(fd, 0, SEEK_SET);
 			stringPtr = strchr(newArg, '>');
 			*stringPtr = '\0';
-			strcpy(structOfArgs.arguments[structStart], newArg);
-			structStart++;
+			if (strlen(newArg) > 0){
+				strcpy(structOfArgs.arguments[structStart],  returnBeforeSpace(removeLeadingSpace(newArg)));
+				structStart++;
+			}
 			break;
 		}
 		strcpy(structOfArgs.arguments[structStart], newArg);
