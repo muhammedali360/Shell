@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <ctype.h>
+#include <fcntl.h>
 
 #define CMDLINE_MAX 512
 #define ARGUMENTS_MAX 16
@@ -197,15 +198,20 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		}
 	}
 }
-void executeRedirect(char *firstArg,char *copyArg){
-	printf("copyArg is: %s\n", copyArg);
+void executeRedirect(char *firstArg,char *copyArg)
+{
+	char originalArgument[CMDLINE_MAX];
+	char *restOfArg = (char *)malloc(CMDLINE_MAX);
 	int structStart = 0;
+	int fd;
+	int status;
+	pid_t pid;
+	char *fileName;
 	CmdLine structOfArgs;
+
+	strcpy(originalArgument, copyArg);
 	while (1) {
 		char *newArg = returnBeforeSpace(removeLeadingSpace(copyArg));
-		printf("newArg is: %s\n", newArg);
-		printf("firstArg is: %s\n", firstArg);
-
 		if (strlen(newArg) == 0){
 			break;
 		}
@@ -216,22 +222,52 @@ void executeRedirect(char *firstArg,char *copyArg){
 			/* If the first argument is a redirect, then print
 			out an error message*/
 			if (!(strcmp(newArg, firstArg))) {
-				printf("Error: missing command\n");
+				fprintf(stderr, "Error: missing command\n");
 				return ;
 			}
 			/* If everything after redirect are spaces or empty,
 			then print an error message*/
-			if  (!strlen(removeLeadingSpace(copyArg))) {
-				printf("Error: no output file\n");
+			restOfArg =  strchr(originalArgument, '>');
+			restOfArg++;
+			if  (!strlen(removeLeadingSpace(restOfArg))) {
+				fprintf(stderr, "Error: no output file\n");
+				return ;
 			}
+			fileName = removeLeadingSpace(restOfArg);
+			fd = open(fileName, O_CREAT | O_TRUNC | O_RDWR, 0644);
+			/* If fd is equal to -1, the file had an error. We
+			need to either create the file or the file had an
+			error. */
+			if (fd == -1) {
+				perror("open");
+				exit(EXIT_FAILURE);
+			}
+			/* If file exists, truncate to 0 */
+			lseek(fd, 0, SEEK_SET);
 		}
-
 		strcpy(structOfArgs.arguments[structStart], newArg);
-		printf("%d item is: %s\n", structStart, structOfArgs.arguments[structStart]);
 		structStart++;
 	}
-	structOfArgs.arguments[structStart] = NULL;}
-
+	structOfArgs.arguments[structStart] = NULL;
+	pid = fork();
+	if (pid == 0){
+		/* Child */
+		dup2(fd, STDIN_FILENO);
+		close(fd);
+		execvp(structOfArgs.arguments[0],
+			structOfArgs.arguments);
+		printf("Error: command not found\n");
+		exit(1);
+	}  else if (pid > 0) {
+		/* Parent */
+		wait(&status);
+		printCompleteMessage(originalArgument,
+		WEXITSTATUS(status));
+	} else {
+		perror("fork");
+		exit(1);
+	}
+}
 int main(void)
 {
 	char *cmd = (char *)malloc(CMDLINE_MAX);
