@@ -8,11 +8,12 @@
 
 #define CMDLINE_MAX 512
 #define ARGUMENTS_MAX 16
+#define FAILURE 1
 
 /* Struct to hold cmdline arguments */
 typedef struct CmdLineStruct {
 	char *arguments[ARGUMENTS_MAX];
-} CmdLine;
+} CmdLineStruct;
 
 /* Creating built in stack */
 /*Inspired by: https://www.geeksforgeeks.org/stack-data-structure-introduction-program */
@@ -23,33 +24,36 @@ typedef struct DirStack
 } DirStack;
 
 /* Prints complete message to stderr */
-void printCompleteMessage(char *completedCommand, int status)
+void printCompleteMessage(char *completedCommand, int exitStatus)
 {
-	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, status);
+	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, exitStatus);
 }
-/* Return the first argument from the command line */
-char *returnBeforeSpace(char *cmd)
-{
-	int stringLength = strlen(cmd);
-	char *dest = (char *)malloc(stringLength + 1);
 
+/* Returns everything before the first whitespace */
+char *returnBeforeSpace(char *string)
+{
+	int stringLength = strlen(string);
+	char *destString = (char *)malloc(stringLength + 1);
+
+	/* Copy everything from before the space into a new string and return said string */
 	for(int i = 0; i < stringLength; i++){
-		/* Copy everything from before the space into a new string and reutrn said string */
-		if (isspace(cmd[i])) {
-			strncpy(dest, cmd, i);
-			return dest;
+		if (isspace(string[i])) {
+			strncpy(destString, string, i);
+			return destString;
 		}
 	}
 	/* If the command is simply one word, free the space set aside from
 	malloc because it was not used and return the orginal command */
-	free(dest);
-	return cmd;
+	free(destString);
+	return string;
 }
-/* Remove any leading spaces or tabs from the command line */
-char *removeLeadingSpace(char *cmd)
+
+/* Remove any leading spaces or tabs from the string */
+char *removeLeadingSpace(char *string)
 {
-	char *firstChar = &cmd[0];
-	for (int i = 0; i < (int)strlen(cmd); i++) {
+	/* Finds the first non white-space character and returns it. If not, keep incrementing to remove white-space characters*/
+	char *firstChar = &string[0];
+	for (int i = 0; i < (int)strlen(string); i++) {
 		if (!isspace(*firstChar)) {
 			break;
 		}
@@ -57,39 +61,38 @@ char *removeLeadingSpace(char *cmd)
 	}
 	return firstChar;
 }
+
 /* Create a new node and add it to the stack */
 DirStack *newNode(char *directory)
 {
-	DirStack* node = (DirStack*)malloc(sizeof(DirStack));
+	DirStack *node = (DirStack*)malloc(sizeof(DirStack));
 	strcpy(node->directory, directory);
 	node->next = NULL;
 	return node;
 }
+
 int isEmpty(DirStack *root)
 {
 	return !root;
 }
 
-/* Pushes current director to stack and then changes directory to given
+/* Pushes current directory to stack and then changes directory to given
 arguement */
 void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 {
 	char cwd[CMDLINE_MAX];
 	getcwd(cwd, sizeof(cwd));
-
 	DirStack *stackNode = newNode(cwd);
 	stackNode->next = *root;
 	*root = stackNode;
-	printf("%s pushed to stack\n", cwd);
-	printf("root directory is: %s\n", stackNode-> directory);
 
 	int checkCd = chdir(directoryToCd);
 	/* If chdir failed, then print out an error message */
 	if (checkCd == -1){
 		fprintf(stderr,"Error: no such directory\n");
-		printCompleteMessage(entireCommand, 1);
+		printCompleteMessage(entireCommand, FAILURE);
 	} else {
-		printCompleteMessage(entireCommand, 0);
+		printCompleteMessage(entireCommand, WEXITSTATUS(EXIT_SUCCESS));
 	}
 }
 
@@ -97,26 +100,16 @@ void popd(DirStack **root)
 {
 	if (isEmpty(*root)){
 		fprintf(stderr,"Error: directory stack empty\n");
-		// printCompleteMessage("popd", 1);
-		printCompleteMessage("popd", 1);
+		printCompleteMessage("popd", FAILURE);
 		return ;
 	}
+	char *poppedDirectory = (char *)malloc(CMDLINE_MAX);
 	DirStack *temp = *root;
 	*root = (*root)->next;
-
-	char *poppedDirectory = (char *)malloc(CMDLINE_MAX);
 	strcpy(poppedDirectory, temp->directory);
 	chdir(poppedDirectory);
 	free(temp);
 	free(poppedDirectory);
-}
-char *peek(DirStack *root)
-{
-	if (isEmpty(root)) {
-		fprintf(stderr,"Is empty\n");
-		return NULL;
-	}
-	return root->directory;
 }
 
 void dirs(DirStack *stack)
@@ -124,21 +117,18 @@ void dirs(DirStack *stack)
 	char cwd[CMDLINE_MAX];
 	getcwd(cwd, sizeof(cwd));
 	printf("%s\n",cwd);
-	DirStack *temp = stack;
-	while (temp != NULL) {
-		printf("%s\n", temp -> directory);
-		temp = temp->next;
+	DirStack *tempStack = stack;
+	while (tempStack != NULL) {
+		printf("%s\n", tempStack -> directory);
+		tempStack = tempStack->next;
 	}
 	printCompleteMessage("dirs", WEXITSTATUS(EXIT_SUCCESS));
 }
 
+/* Handles pushd, popd, and dirs */
 void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 {
 	if (!strcmp(firstArg, "pushd")) {
-
-		// printf("firstArg is: %s\n", firstArg);
-		// printf("copyArg is: %s\n", copyArg);
-
 		char *returnString = "";
 		returnString = strchr(copyArg, ' ');
 		if (returnString == NULL){
@@ -149,10 +139,6 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 			if (returnString[0] == ' '){
 				returnString++;
 			}
-
-			// printf("returnString is: %s\n", returnString);
-			// printf("stack is: %s\n", stack->directory);
-			//maybe remove the *
 			pushd(&stack, returnString, copyArg);
 		}
 	} else if (!strcmp(firstArg, "popd")) {
@@ -212,7 +198,7 @@ void executeRedirect(char *firstArg,char *copyArg)
 	int fd;
 	int status;
 	pid_t pid;
-	CmdLine structOfArgs;
+	CmdLineStruct structOfArgs;
 
 	strcpy(originalArgument, copyArg);
 	while (1) {
@@ -235,7 +221,7 @@ void executeRedirect(char *firstArg,char *copyArg)
 			restOfArg =  strchr(originalArgument, '>');
 			restOfArg++;
 			if(restOfArg == strchr(originalArgument, '&')){
-				//Set error redirect flag if ampersand detected
+				/*Set error redirect flag if ampersand detected */
 				errorFlag=1;
 				restOfArg++;
 			}
@@ -249,7 +235,6 @@ void executeRedirect(char *firstArg,char *copyArg)
 			need to either create the file or the file had an
 			error. */
 			if (fd == -1) {
-				// perror("open");
 				fprintf(stderr, "Error: cannot open output file\n");
 				return ;
 			}
@@ -287,7 +272,8 @@ void executeRedirect(char *firstArg,char *copyArg)
 			perror("fork");
 			exit(1);
 		}
-	} else { //redirect error as well
+	} else {
+		/*redirect error as well */
 		pid = fork();
 		if (pid == 0){
 			/* Child */
@@ -318,10 +304,9 @@ int main(void)
 	char *copyArg = (char *)malloc(CMDLINE_MAX);
 	char *firstArg;
 	char *nl;
-	CmdLine structOfArgs;
+	CmdLineStruct structOfArgs;
 	int structStart;
 	DirStack *stack = NULL;
-	// stack->next = NULL;
 
 	while (1) {
 
@@ -387,7 +372,8 @@ int main(void)
 		/* Execution for non BuiltIn commands */
 		} else if ((!strcmp(firstArg, "pushd")) || (!strcmp(firstArg, "popd")) || (!strcmp(firstArg, "dirs"))) {
 			executeAddIn(firstArg, copyArg, stack);
-		} else { //handle all other cases
+		} else {
+			/* Handle all other cases */
 			pid_t pid;
 			int status;
 
