@@ -108,6 +108,7 @@ void popd(DirStack **root)
 	*root = (*root)->next;
 	strcpy(poppedDirectory, temp->directory);
 	chdir(poppedDirectory);
+	printCompleteMessage("popd", WEXITSTATUS(EXIT_SUCCESS));
 	free(temp);
 	free(poppedDirectory);
 }
