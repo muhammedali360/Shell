@@ -96,7 +96,6 @@ void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 	}
 }
 
-/* Pops latest direct that was pushed onto stack, if any, and changes back to it */
 void popd(DirStack **root)
 {
 	if (isEmpty(*root)){
@@ -130,16 +129,11 @@ void dirs(DirStack *stack)
 void executeAddIn(char *firstArg, char *copyArg, DirStack **stack)
 {
 	if (!strcmp(firstArg, "pushd")) {
-		if (!strcmp(copyArg, "pushd")){
-			fprintf(stderr,"Error: no such directory\n");
-			printCompleteMessage(copyArg, FAILURE);
-			return ;
-		}
 		char *returnString = "";
 		returnString = strchr(copyArg, ' ');
 		if (returnString == NULL){
 			fprintf(stderr,"Error: pushd\n");
-			printCompleteMessage(copyArg, FAILURE);
+			printCompleteMessage(copyArg, 1);
 		} else {
 			/* Increment the pointer after strchr to reach the first character */
 			if (returnString[0] == ' '){
@@ -159,23 +153,24 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 {
 	if (!strcmp(firstArg, "pwd")) {
 		char cwd[CMDLINE_MAX];
-		getcwd(cwd, sizeof(cwd));
+		getcwd( cwd, sizeof(cwd));
 		printf("%s\n",cwd);
 		printCompleteMessage(firstArg, WEXITSTATUS(0));
 	} else if (!strcmp(firstArg, "exit")) {
+		/* Builtin command */
 		fprintf(stderr, "Bye...\n");
-		printCompleteMessage(firstArg, WEXITSTATUS(0));
+		printCompleteMessage(firstArg, 0);
 		exit(0);
-	/* For cd */
+	/* For cd*/
 	} else {
 		int checkCd;
-		char *returnString = "";
-		returnString = strchr(entireCommand, ' ');
 		/* Check if cd lacks an argument, if so print an error
 		message */
+		char *returnString = "";
+		returnString = strchr(entireCommand, ' ');
 		if (returnString == NULL){
 			fprintf(stderr,"Error: no such directory\n");
-			printCompleteMessage(entireCommand, FAILURE);
+			printCompleteMessage(entireCommand, 1);
 		} else {
 			/* Increment the pointer after strchr to reach the first character */
 			if (returnString[0] == ' '){
@@ -185,21 +180,20 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 			/* If checkCd failed, then print out an error message */
 			if (checkCd == -1){
 				fprintf(stderr,"Error: no such directory\n");
-				printCompleteMessage(entireCommand, FAILURE);
+				printCompleteMessage(entireCommand, 1);
 			} else {
-				printCompleteMessage(entireCommand, WEXITSTATUS(EXIT_SUCCESS));
+				printCompleteMessage(entireCommand, 0);
 			}
 		}
 	}
 }
-/* Handles redirect command if a > is found in the cmd */
 void executeRedirect(char *firstArg,char *copyArg)
 {
 	char originalArgument[CMDLINE_MAX];
 	char *restOfArg = (char *)malloc(CMDLINE_MAX);
 	char *stringPtr;
 	char *fileName;
-	int errorFlag = 0;
+	int errorFlag=0;
 	int structStart = 0;
 	int fd;
 	int status;
@@ -209,15 +203,16 @@ void executeRedirect(char *firstArg,char *copyArg)
 	strcpy(originalArgument, copyArg);
 	while (1) {
 		char *newArg = returnBeforeSpace(removeLeadingSpace(copyArg));
-		if (!strlen(newArg)) {
+		if (strlen(newArg) == 0){
 			break;
 		}
 		copyArg += strlen(newArg) + 1;
 		structOfArgs.arguments[structStart] = (char *)malloc(CMDLINE_MAX);
+
 		if(strchr(newArg,'>') != NULL){
 			/* If the first argument is a redirect, then print
 			out an error message*/
-			if (!strcmp(newArg, firstArg)) {
+			if (!(strcmp(newArg, firstArg))) {
 				fprintf(stderr, "Error: missing command\n");
 				return ;
 			}
@@ -225,20 +220,17 @@ void executeRedirect(char *firstArg,char *copyArg)
 			then print an error message*/
 			restOfArg =  strchr(originalArgument, '>');
 			restOfArg++;
-			/*Set error redirect flag if ampersand detected */
-			if(restOfArg == strchr(originalArgument, '&')) {
-				errorFlag = 1;
+			if(restOfArg == strchr(originalArgument, '&')){
+				/*Set error redirect flag if ampersand detected */
+				errorFlag=1;
 				restOfArg++;
 			}
-			/* Error if there is no output file */
 			if  (!strlen(removeLeadingSpace(restOfArg))) {
 				fprintf(stderr, "Error: no output file\n");
 				return ;
 			}
 			fileName = returnBeforeSpace(removeLeadingSpace(restOfArg));
-			/* Opens file. If it does not exist, create it. If it already exists, then truncate it to 0.*/
 			fd = open(fileName, O_CREAT | O_TRUNC | O_RDWR, 0644);
-
 			/* If fd is equal to -1, the file had an error. We
 			need to either create the file or the file had an
 			error. */
@@ -246,6 +238,8 @@ void executeRedirect(char *firstArg,char *copyArg)
 				fprintf(stderr, "Error: cannot open output file\n");
 				return ;
 			}
+			/* If file exists, truncate to 0 */
+			lseek(fd, 0, SEEK_SET);
 			stringPtr = strchr(newArg, '>');
 			*stringPtr = '\0';
 			if (strlen(newArg) > 0){
@@ -258,7 +252,8 @@ void executeRedirect(char *firstArg,char *copyArg)
 		structStart++;
 	}
 	structOfArgs.arguments[structStart] = NULL;
-	if (errorFlag == 0){
+
+	if (errorFlag==0){
 		pid = fork();
 		if (pid == 0){
 			/* Child */
@@ -278,7 +273,7 @@ void executeRedirect(char *firstArg,char *copyArg)
 			exit(1);
 		}
 	} else {
-		/* Redirect error as well */
+		/*redirect error as well */
 		pid = fork();
 		if (pid == 0){
 			/* Child */
@@ -299,18 +294,22 @@ void executeRedirect(char *firstArg,char *copyArg)
 			exit(1);
 		}
 	}
+
+
+
 }
 int main(void)
 {
-	int structStart = 0;
 	char *cmd = (char *)malloc(CMDLINE_MAX);
 	char *copyArg = (char *)malloc(CMDLINE_MAX);
 	char *firstArg;
 	char *nl;
 	CmdLineStruct structOfArgs;
+	int structStart;
 	DirStack **stack = (DirStack **)malloc(sizeof(DirStack **));
 
 	while (1) {
+
 		/* Print prompt */
 		printf("sshell$ ");
 		fflush(stdout);
@@ -324,7 +323,7 @@ int main(void)
 			fflush(stdout);
 		}
 
-		/* Remove leading white spaces in the cmd */
+		/* Remove leading white spaces in the cmd*/
 		cmd = removeLeadingSpace(cmd);
 
 		/* Remove trailing newline from command line */
@@ -347,9 +346,10 @@ int main(void)
 		firstArg = returnBeforeSpace(cmd);
 
 		/* Parse the string, splitting it by spaces */
+		structStart = 0;
 		while (1) {
 			char *newArg = returnBeforeSpace(removeLeadingSpace(cmd));
-			if (!strlen(newArg)) {
+			if (strlen(newArg) == 0){
 				break;
 			}
 			cmd += strlen(newArg) + 1;
