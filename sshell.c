@@ -248,8 +248,9 @@ void executeRedirect(char *firstArg,char *copyArg)
 			need to either create the file or the file had an
 			error. */
 			if (fd == -1) {
-				perror("open");
-				exit(EXIT_FAILURE);
+				// perror("open");
+				fprintf(stderr, "Error: cannot open output file\n");
+				return ;
 			}
 			/* If file exists, truncate to 0 */
 			lseek(fd, 0, SEEK_SET);
