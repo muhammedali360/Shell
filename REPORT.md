@@ -37,7 +37,7 @@ character is then saved as a file name. We then open the file, truncating if it
 exists, and creating it otherwise. A child is forked, and using dup2 we change
 the output file descriptor to the given file. The child then calls Execvp on
 our struct of arguments, which then executes our commands, redirecting the
-output to the file.
+output to the file. [This tutorial helped us understand dup2](https://www.cs.rutgers.edu/~pxk/416/notes/c-tutorials/dup2.html) 
 ### Phase 5:
 We were unfortunately unable to implement piping. We did not have enough time
 and it was arguably the most complex part of the assignment.
