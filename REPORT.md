@@ -12,7 +12,7 @@ Given no space, it will return the input. We do this by iterating through the
 string, searching for a space ' '. When the first space is found, the original
 string is copied up to that point, and the result is returned.
 
-removeLeadingSpace: Given a string, will remove all spaces and tabs preceeding
+removeLeadingSpace: Given a string, will remove all spaces and tabs preceding
 it. We do this in a loop that gets the pointer to the string, checks the first
 character to see if it is whitespace, and increments the pointer if yes, until
 it hits a non-whitespace character and returns.
@@ -32,7 +32,7 @@ input has been parsed. At this point, we follow the same process as before,
 forking a child process and then getting the child process to execvp the command
 along with all arguments that are in the structOfArgs.
 ### Phase 3:
-For the builtin commands, we simply check the first argument to see if it is
+For the built in commands, we simply check the first argument to see if it is
 pwd, cd, or exit. If we detect one of these commands, we call our function
 executeBuiltIn. executeBuiltIn takes the first argument and the entire command,
 and depending on the first argument, it calls the necessary function: exit,
@@ -49,14 +49,15 @@ character is then saved as a file name. We then open the file, truncating if it
 exists, and creating it otherwise. A child is forked, and using dup2 we change
 the output file descriptor to the given file. The child then calls Execvp on
 our struct of arguments, which then executes our commands, redirecting the
-output to the file. [This tutorial helped us understand dup2](https://www.cs.rutgers.edu/~pxk/416/notes/c-tutorials/dup2.html)
+output to the file.
+[This tutorial helped us understand dup2.](https://www.cs.rutgers.edu/~pxk/416/notes/c-tutorials/dup2.html)
 ### Phase 5:
 We were unfortunately unable to implement piping. We did not have enough time
 and it was arguably the most complex part of the assignment.
 ### Phase 6:
 We decided to use a linked list for the stack of directories, based on a piazza
 response by Porquet.
-[We consulted this website for the implementation](https://www.geeksforgeeks.org/stack-data-structure-introduction-program)
+[We consulted this website for the implementation.](https://www.geeksforgeeks.org/stack-data-structure-introduction-program)
 We implemented the a modified version of the link, with pushd, popd, and dirs.
 
 Adding error redirection was as simple as creating a flag to detect an ampersand
