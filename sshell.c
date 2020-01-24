@@ -126,7 +126,7 @@ void dirs(DirStack *stack)
 }
 
 /* Handles pushd, popd, and dirs */
-void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
+void executeAddIn(char *firstArg, char *copyArg, DirStack **stack)
 {
 	if (!strcmp(firstArg, "pushd")) {
 		char *returnString = "";
@@ -139,12 +139,12 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 			if (returnString[0] == ' '){
 				returnString++;
 			}
-			pushd(&stack, returnString, copyArg);
+			pushd(stack, returnString, copyArg);
 		}
 	} else if (!strcmp(firstArg, "popd")) {
-		popd(&stack);
+		popd(stack);
 	} else {
-		dirs(stack);
+		dirs(*stack);
 	}
 }
 
@@ -306,7 +306,7 @@ int main(void)
 	char *nl;
 	CmdLineStruct structOfArgs;
 	int structStart;
-	DirStack *stack = NULL;
+	DirStack **stack = (DirStack **)malloc(sizeof(DirStack **));
 
 	while (1) {
 
