@@ -75,3 +75,6 @@ we were unable to use `WEXITSTATUS(EXIT_FAILURE)` in the opposite fashion, as
 it was also returning a 0 when the command had actually failed. For this reason,
 we defined a new macro `FAILURE` as 1, and used that to pass a 1 to our
 `printCompleteMessage`.
+
+In this report, whenever we claim to "detect" a character, it simply means that
+we are using strchr to find the character.

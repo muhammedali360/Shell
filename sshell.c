@@ -160,11 +160,11 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		char cwd[CMDLINE_MAX];
 		getcwd( cwd, sizeof(cwd));
 		printf("%s\n",cwd);
-		printCompleteMessage(firstArg, WEXITSTATUS(0));
+		printCompleteMessage(firstArg, WEXITSTATUS(EXIT_SUCCESS));
 	} else if (!strcmp(firstArg, "exit")) {
 		/* Builtin command */
 		fprintf(stderr, "Bye...\n");
-		printCompleteMessage(firstArg, WEXITSTATUS(0));
+		printCompleteMessage(firstArg, WEXITSTATUS(EXIT_SUCCESS));
 		exit(0);
 	/* For cd*/
 	} else {
@@ -187,7 +187,7 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 				fprintf(stderr,"Error: no such directory\n");
 				printCompleteMessage(entireCommand,FAILURE);
 			} else {
-				printCompleteMessage(entireCommand, WEXITSTATUS(0));
+				printCompleteMessage(entireCommand, WEXITSTATUS(EXIT_SUCCESS));
 			}
 		}
 	}
