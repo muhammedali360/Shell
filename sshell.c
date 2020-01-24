@@ -85,6 +85,7 @@ void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 		printf("Error: no such directory\n");
 		printCompleteMessage(entireCommand, 1);
 	} else {
+		//random comments
 		printCompleteMessage(entireCommand, 0);
 	}
 }
