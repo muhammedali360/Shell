@@ -96,8 +96,9 @@ void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 void popd(DirStack **root)
 {
 	if (isEmpty(*root)){
-		fprintf(stderr,"Error: no such directory\n");
-		printCompleteMessage("popd", WEXITSTATUS(EXIT_FAILURE));
+		fprintf(stderr,"Error: directory stack empty\n");
+		// printCompleteMessage("popd", 1);
+		printCompleteMessage("popd", 1);
 		return ;
 	}
 	DirStack *temp = *root;
