@@ -72,20 +72,21 @@ int isEmpty(DirStack *root)
 void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 {
 	//malloc here
-	DirStack *stackNode = newNode(directoryToCd);
-	stackNode->next = *root;
-	*root = stackNode;
-	printf("%s pushed to stack\n", directoryToCd);
-
 	char cwd[CMDLINE_MAX];
 	getcwd(cwd, sizeof(cwd));
+
+	DirStack *stackNode = newNode(cwd);
+	stackNode->next = *root;
+	*root = stackNode;
+	printf("%s pushed to stack\n", cwd);
+	printf("root directory is: %s\n", stackNode-> directory);
+
 	int checkCd = chdir(directoryToCd);
-	/* If checkCd failed, then print out an error message */
+	/* If chdir failed, then print out an error message */
 	if (checkCd == -1){
-		printf("Error: no such directory\n");
+		fprintf(stderr,"Error: no such directory\n");
 		printCompleteMessage(entireCommand, 1);
 	} else {
-		//random comments
 		printCompleteMessage(entireCommand, 0);
 	}
 }
@@ -93,8 +94,8 @@ void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 void popd(DirStack **root)
 {
 	if (isEmpty(*root)){
-		printf("Error: directory stack empty\n");
-		printCompleteMessage("popd", 1);
+		fprintf(stderr,"Error: no such directory\n");
+		printCompleteMessage("popd", WEXITSTATUS(EXIT_FAILURE));
 		return ;
 	}
 	DirStack *temp = *root;
@@ -109,7 +110,7 @@ void popd(DirStack **root)
 char *peek(DirStack *root)
 {
 	if (isEmpty(root)) {
-		printf("Is empty\n");
+		fprintf(stderr,"Is empty\n");
 		return NULL;
 	}
 	return root->directory;
@@ -122,22 +123,23 @@ void dirs(DirStack *stack)
 	printf("%s\n",cwd);
 	DirStack *temp = stack;
 	while (temp != NULL) {
-		printf("%s\n", temp ->directory);
+		printf("%s\n", temp -> directory);
 		temp = temp->next;
 	}
+	printCompleteMessage("dirs", WEXITSTATUS(EXIT_SUCCESS));
 }
 
 void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 {
 	if (!strcmp(firstArg, "pushd")) {
 
-		printf("firstArg is: %s\n", firstArg);
-		printf("copyArg is: %s\n", copyArg);
+		// printf("firstArg is: %s\n", firstArg);
+		// printf("copyArg is: %s\n", copyArg);
 
 		char *returnString = "";
 		returnString = strchr(copyArg, ' ');
 		if (returnString == NULL){
-			printf("Error: pushd\n");
+			fprintf(stderr,"Error: pushd\n");
 			printCompleteMessage(copyArg, 1);
 		} else {
 			/* Increment the pointer after strchr to reach the first character */
@@ -145,8 +147,8 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 				returnString++;
 			}
 
-			printf("returnString is: %s\n", returnString);
-			printf("stack is: %s\n", stack->directory);
+			// printf("returnString is: %s\n", returnString);
+			// printf("stack is: %s\n", stack->directory);
 			//maybe remove the *
 			pushd(&stack, returnString, copyArg);
 		}
@@ -178,7 +180,7 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 		char *returnString = "";
 		returnString = strchr(entireCommand, ' ');
 		if (returnString == NULL){
-			printf("Error: no such directory\n");
+			fprintf(stderr,"Error: no such directory\n");
 			printCompleteMessage(entireCommand, 1);
 		} else {
 			/* Increment the pointer after strchr to reach the first character */
@@ -188,7 +190,7 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 			checkCd = chdir(returnString);
 			/* If checkCd failed, then print out an error message */
 			if (checkCd == -1){
-				printf("Error: no such directory\n");
+				fprintf(stderr,"Error: no such directory\n");
 				printCompleteMessage(entireCommand, 1);
 			} else {
 				printCompleteMessage(entireCommand, 0);
@@ -270,7 +272,7 @@ void executeRedirect(char *firstArg,char *copyArg)
 			close(fd);
 			execvp(structOfArgs.arguments[0],
 				structOfArgs.arguments);
-			printf("Error: command not found\n");
+			fprintf(stderr,"Error: command not found\n");
 			exit(1);
 		}  else if (pid > 0) {
 			/* Parent */
@@ -290,7 +292,7 @@ void executeRedirect(char *firstArg,char *copyArg)
 			close(fd);
 			execvp(structOfArgs.arguments[0],
 				structOfArgs.arguments);
-			printf("Error: command not found\n");
+			fprintf(stderr,"Error: command not found\n");
 			exit(1);
 		}  else if (pid > 0) {
 			/* Parent */
@@ -386,7 +388,7 @@ int main(void)
 			/* Child */
 			execvp(structOfArgs.arguments[0],
 				structOfArgs.arguments);
-			printf("Error: command not found\n");
+			fprintf(stderr, "Error: command not found\n");
 			exit(1);
 			}  else if (pid > 0) {
 				/* Parent */
