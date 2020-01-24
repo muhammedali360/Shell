@@ -8,40 +8,6 @@
 
 #define CMDLINE_MAX 512
 #define ARGUMENTS_MAX 16
-#define TOKEN_MAX 32
-
-/* Prints complete message to stderr */
-void printCompleteMessage(char *completedCommand, int retVal)
-{
-	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, retVal);
-}
-/* Return the first argument */
-char *returnBeforeSpace(char *cmd)
-{
-	int stringLength = strlen(cmd);
-	char *dest = (char *)malloc(stringLength + 1);
-
-	for(int i = 0; i < stringLength; i++){
-		if (cmd[i] == ' '){
-			strncpy(dest, cmd, i);
-			return dest;
-		}
-	}
-	free(dest);
-	return cmd;
-}
-/* Remove leading white spaces */
-char *removeLeadingSpace(char *cmd)
-{
-	char *firstChar = &cmd[0];
-	for (size_t i = 0; i < strlen(cmd); i++) {
-		if (!isspace(*firstChar)) {
-			break;
-		}
-		firstChar++;
-	}
-	return firstChar;
-}
 
 /* Struct to hold cmdline arguments */
 typedef struct CmdLineStruct {
@@ -49,7 +15,6 @@ typedef struct CmdLineStruct {
 } CmdLine;
 
 /* Creating built in stack */
-
 /*Inspired by: https://www.geeksforgeeks.org/stack-data-structure-introduction-program */
 typedef struct DirStack
 {
@@ -57,6 +22,42 @@ typedef struct DirStack
 	struct DirStack* next;
 } DirStack;
 
+/* Prints complete message to stderr */
+void printCompleteMessage(char *completedCommand, int status)
+{
+	fprintf(stderr, "+ completed '%s' [%d]\n", completedCommand, status);
+}
+/* Return the first argument from the command line */
+char *returnBeforeSpace(char *cmd)
+{
+	int stringLength = strlen(cmd);
+	char *dest = (char *)malloc(stringLength + 1);
+
+	for(int i = 0; i < stringLength; i++){
+		/* Copy everything from before the space into a new string and reutrn said string */
+		if (cmd[i] == ' '){
+			strncpy(dest, cmd, i);
+			return dest;
+		}
+	}
+	/* If the command is simply one word, free the space set aside from
+	malloc because it was not used and return the orginal command */
+	free(dest);
+	return cmd;
+}
+/* Remove any leading spaces or tabs from the command line */
+char *removeLeadingSpace(char *cmd)
+{
+	char *firstChar = &cmd[0];
+	for (int i = 0; i < (int)strlen(cmd); i++) {
+		if (!isspace(*firstChar)) {
+			break;
+		}
+		firstChar++;
+	}
+	return firstChar;
+}
+/* Create a new node and add it to the stack */
 DirStack *newNode(char *directory)
 {
 	DirStack* node = (DirStack*)malloc(sizeof(DirStack));
@@ -69,9 +70,10 @@ int isEmpty(DirStack *root)
 	return !root;
 }
 
+/* Pushes current director to stack and then changes directory to given
+arguement */
 void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 {
-	//malloc here
 	char cwd[CMDLINE_MAX];
 	getcwd(cwd, sizeof(cwd));
 
@@ -367,6 +369,10 @@ int main(void)
 			structOfArgs.arguments[structStart] = (char *)malloc(CMDLINE_MAX);
 			strcpy(structOfArgs.arguments[structStart], newArg);
 			structStart++;
+		}
+		if (structStart > ARGUMENTS_MAX){
+			fprintf(stderr,"Error: too many process arguments\n");
+			continue;
 		}
 		structOfArgs.arguments[structStart] = NULL;
 
