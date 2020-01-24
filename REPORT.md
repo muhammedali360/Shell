@@ -2,6 +2,11 @@
 ## Sample Shell
 
 ### Important Global Functions:
+printCompleteMessage: After each command, our shell is supposed to print a
+completed message to stderr. This function takes the command and a return value,
+printing the command that was completed and indicating whether an error occurred
+or not.
+
 returnBeforeSpace: Given a string, returns everything before the first space.
 Given no space, it will return the input. We do this by iterating through the
 string, searching for a space ' '. When the first space is found, the original
@@ -27,6 +32,13 @@ input has been parsed. At this point, we follow the same process as before,
 forking a child process and then getting the child process to execvp the command
 along with all arguments that are in the structOfArgs.
 ### Phase 3:
+For the builtin commands, we simply check the first argument to see if it is
+pwd, cd, or exit. If we detect one of these commands, we call our function
+executeBuiltIn. executeBuiltIn takes the first argument and the entire command,
+and depending on the first argument, it calls the necessary function: exit,
+getcwd, or chdir. The first two are incredible straightforward, but for chdir,
+we need to check that we were supplied a directory, and that the directory
+actually exists.
 ### Phase 4:
 Since we were given that no built in commands would be redirected, we simply
 created a new function that would be called upon detection of the redirection
@@ -37,7 +49,7 @@ character is then saved as a file name. We then open the file, truncating if it
 exists, and creating it otherwise. A child is forked, and using dup2 we change
 the output file descriptor to the given file. The child then calls Execvp on
 our struct of arguments, which then executes our commands, redirecting the
-output to the file. [This tutorial helped us understand dup2](https://www.cs.rutgers.edu/~pxk/416/notes/c-tutorials/dup2.html) 
+output to the file. [This tutorial helped us understand dup2](https://www.cs.rutgers.edu/~pxk/416/notes/c-tutorials/dup2.html)
 ### Phase 5:
 We were unfortunately unable to implement piping. We did not have enough time
 and it was arguably the most complex part of the assignment.
