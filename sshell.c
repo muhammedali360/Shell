@@ -96,6 +96,7 @@ void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 	}
 }
 
+/* Pops latest direct that was pushed onto stack, if any, and changes back to it */
 void popd(DirStack **root)
 {
 	if (isEmpty(*root)){
@@ -129,11 +130,16 @@ void dirs(DirStack *stack)
 void executeAddIn(char *firstArg, char *copyArg, DirStack **stack)
 {
 	if (!strcmp(firstArg, "pushd")) {
+		if (!strcmp(copyArg, "pushd")){
+			fprintf(stderr,"Error: no such directory\n");
+			printCompleteMessage(copyArg, FAILURE);
+			return ;
+		}
 		char *returnString = "";
 		returnString = strchr(copyArg, ' ');
 		if (returnString == NULL){
 			fprintf(stderr,"Error: pushd\n");
-			printCompleteMessage(copyArg, 1);
+			printCompleteMessage(copyArg, FAILURE);
 		} else {
 			/* Increment the pointer after strchr to reach the first character */
 			if (returnString[0] == ' '){
@@ -153,24 +159,23 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 {
 	if (!strcmp(firstArg, "pwd")) {
 		char cwd[CMDLINE_MAX];
-		getcwd( cwd, sizeof(cwd));
+		getcwd(cwd, sizeof(cwd));
 		printf("%s\n",cwd);
 		printCompleteMessage(firstArg, WEXITSTATUS(0));
 	} else if (!strcmp(firstArg, "exit")) {
-		/* Builtin command */
 		fprintf(stderr, "Bye...\n");
-		printCompleteMessage(firstArg, 0);
+		printCompleteMessage(firstArg, WEXITSTATUS(0));
 		exit(0);
-	/* For cd*/
+	/* For cd */
 	} else {
 		int checkCd;
-		/* Check if cd lacks an argument, if so print an error
-		message */
 		char *returnString = "";
 		returnString = strchr(entireCommand, ' ');
+		/* Check if cd lacks an argument, if so print an error
+		message */
 		if (returnString == NULL){
 			fprintf(stderr,"Error: no such directory\n");
-			printCompleteMessage(entireCommand, 1);
+			printCompleteMessage(entireCommand, FAILURE);
 		} else {
 			/* Increment the pointer after strchr to reach the first character */
 			if (returnString[0] == ' '){
@@ -180,20 +185,21 @@ void executeBuiltIn(char *firstArg, char *entireCommand)
 			/* If checkCd failed, then print out an error message */
 			if (checkCd == -1){
 				fprintf(stderr,"Error: no such directory\n");
-				printCompleteMessage(entireCommand, 1);
+				printCompleteMessage(entireCommand, FAILURE);
 			} else {
-				printCompleteMessage(entireCommand, 0);
+				printCompleteMessage(entireCommand, WEXITSTATUS(EXIT_SUCCESS));
 			}
 		}
 	}
 }
+/* Handles redirect command if a > is found in the cmd */
 void executeRedirect(char *firstArg,char *copyArg)
 {
 	char originalArgument[CMDLINE_MAX];
 	char *restOfArg = (char *)malloc(CMDLINE_MAX);
 	char *stringPtr;
 	char *fileName;
-	int errorFlag=0;
+	int errorFlag = 0;
 	int structStart = 0;
 	int fd;
 	int status;
@@ -222,7 +228,7 @@ void executeRedirect(char *firstArg,char *copyArg)
 			restOfArg++;
 			if(restOfArg == strchr(originalArgument, '&')){
 				/*Set error redirect flag if ampersand detected */
-				errorFlag=1;
+				errorFlag = 1;
 				restOfArg++;
 			}
 			if  (!strlen(removeLeadingSpace(restOfArg))) {
