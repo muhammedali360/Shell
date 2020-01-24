@@ -79,7 +79,7 @@ void pushd(DirStack **root, char *directoryToCd, char *entireCommand)
 
 	char cwd[CMDLINE_MAX];
 	getcwd(cwd, sizeof(cwd));
-	int checkCd = chdir(cwd);
+	int checkCd = chdir(directoryToCd);
 	/* If checkCd failed, then print out an error message */
 	if (checkCd == -1){
 		printf("Error: no such directory\n");
@@ -147,10 +147,10 @@ void executeAddIn(char *firstArg, char *copyArg, DirStack *stack)
 			printf("returnString is: %s\n", returnString);
 			printf("stack is: %s\n", stack->directory);
 			//maybe remove the *
-			// pushd(&stack, returnString, copyArg);
+			pushd(&stack, returnString, copyArg);
 		}
 	} else if (!strcmp(firstArg, "popd")) {
-		// popd(&stack);
+		popd(&stack);
 	} else {
 		dirs(stack);
 	}
