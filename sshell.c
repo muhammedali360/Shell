@@ -35,7 +35,7 @@ char *returnBeforeSpace(char *cmd)
 
 	for(int i = 0; i < stringLength; i++){
 		/* Copy everything from before the space into a new string and reutrn said string */
-		if (cmd[i] == ' '){
+		if (isspace(cmd[i])) {
 			strncpy(dest, cmd, i);
 			return dest;
 		}
